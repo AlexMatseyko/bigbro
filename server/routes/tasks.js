@@ -141,7 +141,6 @@ function isUserResponsibleForTask(task, userAsproId) {
 
 /**
  * Задача показывается в списке, если не в архиве.
- * Закрытые (closed_date) тоже показываем — иначе у пользователей не видны их задачи из Aspro.
  */
 function isActiveTask(task) {
   if (!task || typeof task !== 'object') return false;
@@ -152,10 +151,38 @@ function isActiveTask(task) {
   return true;
 }
 
+/** Этапы/статусы, при которых задача считается завершённой (не показываем в списке). */
+const COMPLETED_STAGE_NAMES = ['закрыт', 'закрыта', 'опубликован', 'опубликовано', 'выполнен', 'выполнена', 'completed', 'closed', 'done'];
+
 /**
- * В вашем портале type=30 и public_template=1 стоят у обычных рабочих задач (созданных из шаблона), поэтому по ним не отсекаем — шаблонные записи не фильтруем по этим полям.
+ * Задача считается завершённой: есть closed_date, статус 5 (закрыта) или этап «Закрыта»/«Опубликовано».
+ */
+function isCompletedTask(task) {
+  if (!task || typeof task !== 'object') return false;
+  const closedDate = task.closed_date ?? task.CLOSED_DATE ?? task.closedDate;
+  if (closedDate != null && String(closedDate).trim() !== '') return true;
+  const code = Number(task.status ?? task.STATUS ?? task.workflow_stage_id ?? task.stage_id ?? task.stageId ?? 0);
+  if (code === 5) return true; // 5 — закрыта
+  const name = (
+    task.statusTitle ?? task.status_title ?? task.stageName ?? task.stage_name
+    ?? (task.stage && (task.stage.name ?? task.stage.title))
+    ?? (task.workflow_stage && (task.workflow_stage.name ?? task.workflow_stage.title))
+    ?? ''
+  ).toString().trim().toLowerCase();
+  if (COMPLETED_STAGE_NAMES.some((s) => name.includes(s))) return true;
+  return false;
+}
+
+/**
+ * Запись-шаблон (сам шаблон задачи), а не задача, созданная из шаблона. Не показываем в списке.
+ * Примечание: type=30 и public_template=1 у вас стоят у обычных задач, по ним не отсекаем.
  */
 function isTemplateTask(task) {
+  if (!task || typeof task !== 'object') return false;
+  if (task.is_template === true || task.is_template === '1' || task.IS_TEMPLATE === true) return true;
+  const templateId = task.template_id ?? task.TEMPLATE_ID;
+  const id = task.id ?? task.ID;
+  if (templateId != null && id != null && String(templateId) === String(id)) return true;
   return false;
 }
 
@@ -186,11 +213,14 @@ router.get('/', async (req, res) => {
     }
     let tasks = Array.from(byId.values());
 
-    // Только не в архиве и где пользователь — ответственный.
-    tasks = tasks.filter((t) => isActiveTask(t) && isUserResponsibleForTask(t, userAsproId));
-
-    // Исключаем записи-шаблоны (сам шаблон задачи, не задачи из шаблона) по полям задачи: type=30 и public_template=1.
-    tasks = tasks.filter((t) => !isTemplateTask(t));
+    // Только не в архиве, не завершённые, не шаблоны, и где пользователь — исполнитель.
+    tasks = tasks.filter(
+      (t) =>
+        isActiveTask(t) &&
+        isUserResponsibleForTask(t, userAsproId) &&
+        !isCompletedTask(t) &&
+        !isTemplateTask(t)
+    );
 
     // Статус: из названия или из кода (1,2,3,4). List2_list и API могут отдавать этап в разных полях — проверяем все варианты.
     const withStatus = tasks.map((t) => {
@@ -287,8 +317,10 @@ router.get('/raw', async (req, res) => {
         workflow_id: t.workflow_id,
         passed_active: active,
         passed_responsible: responsible,
+        passed_not_completed: !isCompletedTask(t),
+        is_completed: isCompletedTask(t),
         is_template_task: isTemplateTask(t),
-        in_result: active && responsible && !isTemplateTask(t)
+        in_result: active && responsible && !isCompletedTask(t) && !isTemplateTask(t)
       };
     });
 
