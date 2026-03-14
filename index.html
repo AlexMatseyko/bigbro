@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Team Tracker</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="app">
+
+<h1>Team Tracker</h1>
+
+<div id="auth">
+
+<h2>Login</h2>
+
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+
+<button id="login">Login</button>
+<button id="register">Register</button>
+
+</div>
+
+<div id="tracker" style="display:none;">
+
+<h2>Status: <span id="status">Offline</span></h2>
+
+<button id="startShift">Start Shift</button>
+<button id="pauseShift">Pause</button>
+<button id="finishShift">Finish</button>
+
+<p>Current task:</p>
+<input id="task" placeholder="Task name">
+
+</div>
+
+</div>
+
+<script src="renderer.js"></script>
+
+</body>
+</html>

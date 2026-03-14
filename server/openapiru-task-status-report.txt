@@ -1,0 +1,1467 @@
+=== OpenAPI Task & Status Report (openapiru.json) ===
+
+Schemas with "task" in name (case insensitive):
+  (This spec has no components.schemas; schemas are inline under paths.)
+  Task-related schema locations (path in spec containing "task"):
+  - .paths./task/tasks/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/tasks/create.post.responses.200.content.application/json.schema
+  - .paths./task/tasks/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/tasks/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/tasks/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/tasks/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/tasks/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/tasks/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/tasks/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/tasks/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/tasks/list.get.responses.200.content.application/json.schema
+  - .paths./task/tasks/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/tasks/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+  - .paths./task/invoicing_logs/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/invoicing_logs/create.post.responses.200.content.application/json.schema
+  - .paths./task/invoicing_logs/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/invoicing_logs/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/invoicing_logs/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/invoicing_logs/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/invoicing_logs/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/invoicing_logs/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/invoicing_logs/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/invoicing_logs/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/invoicing_logs/list.get.responses.200.content.application/json.schema
+  - .paths./task/invoicing_logs/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/invoicing_logs/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+  - .paths./task/lists/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/lists/create.post.responses.200.content.application/json.schema
+  - .paths./task/lists/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/lists/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/lists/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/lists/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/lists/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/lists/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/lists/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/lists/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/lists/list.get.responses.200.content.application/json.schema
+  - .paths./task/lists/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/lists/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+  - .paths./task/taskslists/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/taskslists/create.post.responses.200.content.application/json.schema
+  - .paths./task/taskslists/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/taskslists/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/taskslists/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/taskslists/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/taskslists/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/taskslists/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/taskslists/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/taskslists/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/taskslists/list.get.responses.200.content.application/json.schema
+  - .paths./task/taskslists/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/taskslists/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+  - .paths./task/followers/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/followers/create.post.responses.200.content.application/json.schema
+  - .paths./task/followers/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/followers/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/followers/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/followers/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/followers/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/followers/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/followers/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/followers/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/followers/list.get.responses.200.content.application/json.schema
+  - .paths./task/followers/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/followers/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+  - .paths./task/collaborators/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/collaborators/create.post.responses.200.content.application/json.schema
+  - .paths./task/collaborators/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/collaborators/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/collaborators/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/collaborators/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/collaborators/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/collaborators/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/collaborators/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/collaborators/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/collaborators/list.get.responses.200.content.application/json.schema
+  - .paths./task/collaborators/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/collaborators/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+  - .paths./task/workflows/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/workflows/create.post.responses.200.content.application/json.schema
+  - .paths./task/workflows/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/workflows/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/workflows/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/workflows/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/workflows/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/workflows/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/workflows/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/workflows/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/workflows/list.get.responses.200.content.application/json.schema
+  - .paths./task/workflows/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/workflows/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+  - .paths./task/stages/create.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/stages/create.post.responses.200.content.application/json.schema
+  - .paths./task/stages/create.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/stages/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema
+  - .paths./task/stages/update/{id}.post.responses.200.content.application/json.schema
+  - .paths./task/stages/update/{id}.post.responses.200.content.application/json.schema.properties.response
+  - .paths./task/stages/delete/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/stages/delete/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/stages/get/{id}.get.responses.200.content.application/json.schema
+  - .paths./task/stages/get/{id}.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/stages/list.get.responses.200.content.application/json.schema
+  - .paths./task/stages/list.get.responses.200.content.application/json.schema.properties.response
+  - .paths./task/stages/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items
+
+Total task-related schema locations: 104
+
+--- Schema at: .paths./task/tasks/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+Status-related properties:
+  status_firstviewdate: type: string
+  status: type: integer
+  status_updated_by: type: integer
+  status_updated_date: type: string
+  event_busy_status: type: integer
+  archive_status: type: integer
+
+All properties:
+  name: type: string
+  description: type: string
+  report: type: string
+  parent_id: type: integer
+  prev_task_id: type: integer
+  deadline: type: string
+  deadline_allowchange: type: boolean
+  plan_start_date: type: string
+  plan_end_date: type: string
+  priority: type: integer
+  task_checkbyowner: type: boolean
+  responsible_id: type: integer
+  time_estimate: type: integer
+  time_spent: type: integer
+  cost: type: number
+  price: type: number
+  cost_type: type: string
+  price_type: type: string
+  created_date: type: string
+  owner_id: type: integer
+  updated_date: type: string
+  updated_by: type: integer
+  status_firstviewdate: type: string [status-related]
+  status: type: integer [status-related]
+  start_date: type: string
+  first_closed_date: type: string
+  closed_date: type: string
+  closed_by: type: integer
+  return_count: type: integer
+  rating: type: integer
+  status_updated_by: type: integer [status-related]
+  status_updated_date: type: string [status-related]
+  ref: type: string
+  ref_id: type: string
+  module: type: string
+  model: type: string
+  model_id: type: integer
+  project_stage_id: type: integer
+  project_checkitem_id: type: integer
+  type: type: integer
+  report_complete: type: string
+  crm_account_id: type: integer
+  ordering: type: number
+  all_day: type: boolean
+  uuid: type: string
+  public_template: type: integer
+  template_id: type: integer
+  is_repeat: type: boolean
+  is_recurrence: type: boolean
+  recurrence_id: type: integer
+  recurrence_parent_id: type: integer
+  recurrence_original_start_date: type: string
+  event_location: type: string
+  event_color: type: string
+  event_busy_status: type: integer [status-related]
+  event_access_type: type: integer
+  event_calendar_id: type: integer
+  event_type: type: integer
+  event_etag: type: string
+  event_sync_type: type: integer
+  archive_status: type: integer [status-related]
+  is_hidden: type: boolean
+  workflow_id: type: integer
+  workflow_stage_id: type: integer
+
+
+--- Schema at: .paths./task/tasks/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/tasks/create.post.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  status_firstviewdate: type: string
+  status: type: integer
+  status_updated_by: type: integer
+  status_updated_date: type: string
+  event_busy_status: type: integer
+  archive_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  report: type: string
+  parent_id: type: integer
+  prev_task_id: type: integer
+  deadline: type: string
+  deadline_allowchange: type: boolean
+  plan_start_date: type: string
+  plan_end_date: type: string
+  priority: type: integer
+  task_checkbyowner: type: boolean
+  responsible_id: type: integer
+  time_estimate: type: integer
+  time_spent: type: integer
+  cost: type: number
+  price: type: number
+  cost_type: type: string
+  price_type: type: string
+  created_date: type: string
+  owner_id: type: integer
+  updated_date: type: string
+  updated_by: type: integer
+  status_firstviewdate: type: string [status-related]
+  status: type: integer [status-related]
+  start_date: type: string
+  first_closed_date: type: string
+  closed_date: type: string
+  closed_by: type: integer
+  return_count: type: integer
+  rating: type: integer
+  status_updated_by: type: integer [status-related]
+  status_updated_date: type: string [status-related]
+  ref: type: string
+  ref_id: type: string
+  module: type: string
+  model: type: string
+  model_id: type: integer
+  project_stage_id: type: integer
+  project_checkitem_id: type: integer
+  type: type: integer
+  report_complete: type: string
+  crm_account_id: type: integer
+  ordering: type: number
+  all_day: type: boolean
+  uuid: type: string
+  public_template: type: integer
+  template_id: type: integer
+  is_repeat: type: boolean
+  is_recurrence: type: boolean
+  recurrence_id: type: integer
+  recurrence_parent_id: type: integer
+  recurrence_original_start_date: type: string
+  event_location: type: string
+  event_color: type: string
+  event_busy_status: type: integer [status-related]
+  event_access_type: type: integer
+  event_calendar_id: type: integer
+  event_type: type: integer
+  event_etag: type: string
+  event_sync_type: type: integer
+  archive_status: type: integer [status-related]
+  is_hidden: type: boolean
+  workflow_id: type: integer
+  workflow_stage_id: type: integer
+
+
+--- Schema at: .paths./task/tasks/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+Status-related properties:
+  status_firstviewdate: type: string
+  status: type: integer
+  status_updated_by: type: integer
+  status_updated_date: type: string
+  event_busy_status: type: integer
+  archive_status: type: integer
+
+All properties:
+  name: type: string
+  description: type: string
+  report: type: string
+  parent_id: type: integer
+  prev_task_id: type: integer
+  deadline: type: string
+  deadline_allowchange: type: boolean
+  plan_start_date: type: string
+  plan_end_date: type: string
+  priority: type: integer
+  task_checkbyowner: type: boolean
+  responsible_id: type: integer
+  time_estimate: type: integer
+  time_spent: type: integer
+  cost: type: number
+  price: type: number
+  cost_type: type: string
+  price_type: type: string
+  created_date: type: string
+  owner_id: type: integer
+  updated_date: type: string
+  updated_by: type: integer
+  status_firstviewdate: type: string [status-related]
+  status: type: integer [status-related]
+  start_date: type: string
+  first_closed_date: type: string
+  closed_date: type: string
+  closed_by: type: integer
+  return_count: type: integer
+  rating: type: integer
+  status_updated_by: type: integer [status-related]
+  status_updated_date: type: string [status-related]
+  ref: type: string
+  ref_id: type: string
+  module: type: string
+  model: type: string
+  model_id: type: integer
+  project_stage_id: type: integer
+  project_checkitem_id: type: integer
+  type: type: integer
+  report_complete: type: string
+  crm_account_id: type: integer
+  ordering: type: number
+  all_day: type: boolean
+  uuid: type: string
+  public_template: type: integer
+  template_id: type: integer
+  is_repeat: type: boolean
+  is_recurrence: type: boolean
+  recurrence_id: type: integer
+  recurrence_parent_id: type: integer
+  recurrence_original_start_date: type: string
+  event_location: type: string
+  event_color: type: string
+  event_busy_status: type: integer [status-related]
+  event_access_type: type: integer
+  event_calendar_id: type: integer
+  event_type: type: integer
+  event_etag: type: string
+  event_sync_type: type: integer
+  archive_status: type: integer [status-related]
+  is_hidden: type: boolean
+  workflow_id: type: integer
+  workflow_stage_id: type: integer
+
+
+--- Schema at: .paths./task/tasks/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/tasks/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  status_firstviewdate: type: string
+  status: type: integer
+  status_updated_by: type: integer
+  status_updated_date: type: string
+  event_busy_status: type: integer
+  archive_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  report: type: string
+  parent_id: type: integer
+  prev_task_id: type: integer
+  deadline: type: string
+  deadline_allowchange: type: boolean
+  plan_start_date: type: string
+  plan_end_date: type: string
+  priority: type: integer
+  task_checkbyowner: type: boolean
+  responsible_id: type: integer
+  time_estimate: type: integer
+  time_spent: type: integer
+  cost: type: number
+  price: type: number
+  cost_type: type: string
+  price_type: type: string
+  created_date: type: string
+  owner_id: type: integer
+  updated_date: type: string
+  updated_by: type: integer
+  status_firstviewdate: type: string [status-related]
+  status: type: integer [status-related]
+  start_date: type: string
+  first_closed_date: type: string
+  closed_date: type: string
+  closed_by: type: integer
+  return_count: type: integer
+  rating: type: integer
+  status_updated_by: type: integer [status-related]
+  status_updated_date: type: string [status-related]
+  ref: type: string
+  ref_id: type: string
+  module: type: string
+  model: type: string
+  model_id: type: integer
+  project_stage_id: type: integer
+  project_checkitem_id: type: integer
+  type: type: integer
+  report_complete: type: string
+  crm_account_id: type: integer
+  ordering: type: number
+  all_day: type: boolean
+  uuid: type: string
+  public_template: type: integer
+  template_id: type: integer
+  is_repeat: type: boolean
+  is_recurrence: type: boolean
+  recurrence_id: type: integer
+  recurrence_parent_id: type: integer
+  recurrence_original_start_date: type: string
+  event_location: type: string
+  event_color: type: string
+  event_busy_status: type: integer [status-related]
+  event_access_type: type: integer
+  event_calendar_id: type: integer
+  event_type: type: integer
+  event_etag: type: string
+  event_sync_type: type: integer
+  archive_status: type: integer [status-related]
+  is_hidden: type: boolean
+  workflow_id: type: integer
+  workflow_stage_id: type: integer
+
+
+--- Schema at: .paths./task/tasks/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/tasks/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/tasks/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/tasks/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  status_firstviewdate: type: string
+  status: type: integer
+  status_updated_by: type: integer
+  status_updated_date: type: string
+  event_busy_status: type: integer
+  archive_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  report: type: string
+  parent_id: type: integer
+  prev_task_id: type: integer
+  deadline: type: string
+  deadline_allowchange: type: boolean
+  plan_start_date: type: string
+  plan_end_date: type: string
+  priority: type: integer
+  task_checkbyowner: type: boolean
+  responsible_id: type: integer
+  time_estimate: type: integer
+  time_spent: type: integer
+  cost: type: number
+  price: type: number
+  cost_type: type: string
+  price_type: type: string
+  created_date: type: string
+  owner_id: type: integer
+  updated_date: type: string
+  updated_by: type: integer
+  status_firstviewdate: type: string [status-related]
+  status: type: integer [status-related]
+  start_date: type: string
+  first_closed_date: type: string
+  closed_date: type: string
+  closed_by: type: integer
+  return_count: type: integer
+  rating: type: integer
+  status_updated_by: type: integer [status-related]
+  status_updated_date: type: string [status-related]
+  ref: type: string
+  ref_id: type: string
+  module: type: string
+  model: type: string
+  model_id: type: integer
+  project_stage_id: type: integer
+  project_checkitem_id: type: integer
+  type: type: integer
+  report_complete: type: string
+  crm_account_id: type: integer
+  ordering: type: number
+  all_day: type: boolean
+  uuid: type: string
+  public_template: type: integer
+  template_id: type: integer
+  is_repeat: type: boolean
+  is_recurrence: type: boolean
+  recurrence_id: type: integer
+  recurrence_parent_id: type: integer
+  recurrence_original_start_date: type: string
+  event_location: type: string
+  event_color: type: string
+  event_busy_status: type: integer [status-related]
+  event_access_type: type: integer
+  event_calendar_id: type: integer
+  event_type: type: integer
+  event_etag: type: string
+  event_sync_type: type: integer
+  archive_status: type: integer [status-related]
+  is_hidden: type: boolean
+  workflow_id: type: integer
+  workflow_stage_id: type: integer
+
+
+--- Schema at: .paths./task/tasks/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/tasks/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/tasks/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+Status-related properties:
+  status_firstviewdate: type: string
+  status: type: integer
+  status_updated_by: type: integer
+  status_updated_date: type: string
+  event_busy_status: type: integer
+  archive_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  report: type: string
+  parent_id: type: integer
+  prev_task_id: type: integer
+  deadline: type: string
+  deadline_allowchange: type: boolean
+  plan_start_date: type: string
+  plan_end_date: type: string
+  priority: type: integer
+  task_checkbyowner: type: boolean
+  responsible_id: type: integer
+  time_estimate: type: integer
+  time_spent: type: integer
+  cost: type: number
+  price: type: number
+  cost_type: type: string
+  price_type: type: string
+  created_date: type: string
+  owner_id: type: integer
+  updated_date: type: string
+  updated_by: type: integer
+  status_firstviewdate: type: string [status-related]
+  status: type: integer [status-related]
+  start_date: type: string
+  first_closed_date: type: string
+  closed_date: type: string
+  closed_by: type: integer
+  return_count: type: integer
+  rating: type: integer
+  status_updated_by: type: integer [status-related]
+  status_updated_date: type: string [status-related]
+  ref: type: string
+  ref_id: type: string
+  module: type: string
+  model: type: string
+  model_id: type: integer
+  project_stage_id: type: integer
+  project_checkitem_id: type: integer
+  type: type: integer
+  report_complete: type: string
+  crm_account_id: type: integer
+  ordering: type: number
+  all_day: type: boolean
+  uuid: type: string
+  public_template: type: integer
+  template_id: type: integer
+  is_repeat: type: boolean
+  is_recurrence: type: boolean
+  recurrence_id: type: integer
+  recurrence_parent_id: type: integer
+  recurrence_original_start_date: type: string
+  event_location: type: string
+  event_color: type: string
+  event_busy_status: type: integer [status-related]
+  event_access_type: type: integer
+  event_calendar_id: type: integer
+  event_type: type: integer
+  event_etag: type: string
+  event_sync_type: type: integer
+  archive_status: type: integer [status-related]
+  is_hidden: type: boolean
+  workflow_id: type: integer
+  workflow_stage_id: type: integer
+
+
+--- Schema at: .paths./task/invoicing_logs/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  task_id: type: integer
+  invoice_id: type: integer
+  amount: type: number
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/invoicing_logs/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/invoicing_logs/create.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  invoice_id: type: integer
+  amount: type: number
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/invoicing_logs/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  task_id: type: integer
+  invoice_id: type: integer
+  amount: type: number
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/invoicing_logs/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/invoicing_logs/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  invoice_id: type: integer
+  amount: type: number
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/invoicing_logs/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/invoicing_logs/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/invoicing_logs/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/invoicing_logs/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  invoice_id: type: integer
+  amount: type: number
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/invoicing_logs/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/invoicing_logs/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/invoicing_logs/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  invoice_id: type: integer
+  amount: type: number
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/lists/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  name: type: string
+  user_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+  color: type: string
+  icon: type: string
+  ordering: type: integer
+
+
+--- Schema at: .paths./task/lists/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/lists/create.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  name: type: string
+  user_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+  color: type: string
+  icon: type: string
+  ordering: type: integer
+
+
+--- Schema at: .paths./task/lists/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  name: type: string
+  user_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+  color: type: string
+  icon: type: string
+  ordering: type: integer
+
+
+--- Schema at: .paths./task/lists/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/lists/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  name: type: string
+  user_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+  color: type: string
+  icon: type: string
+  ordering: type: integer
+
+
+--- Schema at: .paths./task/lists/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/lists/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/lists/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/lists/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  name: type: string
+  user_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+  color: type: string
+  icon: type: string
+  ordering: type: integer
+
+
+--- Schema at: .paths./task/lists/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/lists/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/lists/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+All properties:
+  id: type: integer
+  name: type: string
+  user_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+  color: type: string
+  icon: type: string
+  ordering: type: integer
+
+
+--- Schema at: .paths./task/taskslists/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  task_id: type: integer
+  list_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/taskslists/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/taskslists/create.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  list_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/taskslists/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  task_id: type: integer
+  list_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/taskslists/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/taskslists/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  list_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/taskslists/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/taskslists/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/taskslists/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/taskslists/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  list_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/taskslists/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/taskslists/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/taskslists/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  list_id: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/followers/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+Status-related properties:
+  event_accepted_status: type: boolean
+
+All properties:
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  role: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  event_accepted_status: type: boolean [status-related]
+  event_show_user_notification: type: boolean
+
+
+--- Schema at: .paths./task/followers/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/followers/create.post.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  event_accepted_status: type: boolean
+
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  role: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  event_accepted_status: type: boolean [status-related]
+  event_show_user_notification: type: boolean
+
+
+--- Schema at: .paths./task/followers/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+Status-related properties:
+  event_accepted_status: type: boolean
+
+All properties:
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  role: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  event_accepted_status: type: boolean [status-related]
+  event_show_user_notification: type: boolean
+
+
+--- Schema at: .paths./task/followers/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/followers/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  event_accepted_status: type: boolean
+
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  role: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  event_accepted_status: type: boolean [status-related]
+  event_show_user_notification: type: boolean
+
+
+--- Schema at: .paths./task/followers/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/followers/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/followers/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/followers/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  event_accepted_status: type: boolean
+
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  role: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  event_accepted_status: type: boolean [status-related]
+  event_show_user_notification: type: boolean
+
+
+--- Schema at: .paths./task/followers/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/followers/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/followers/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+Status-related properties:
+  event_accepted_status: type: boolean
+
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  role: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  event_accepted_status: type: boolean [status-related]
+  event_show_user_notification: type: boolean
+
+
+--- Schema at: .paths./task/collaborators/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/collaborators/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/collaborators/create.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/collaborators/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/collaborators/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/collaborators/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/collaborators/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/collaborators/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/collaborators/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/collaborators/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/collaborators/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/collaborators/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/collaborators/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+All properties:
+  id: type: integer
+  task_id: type: integer
+  user_id: type: integer
+  group_id: type: integer
+  created_by: type: integer
+  created_date: type: string
+  updated_by: type: integer
+  updated_date: type: string
+
+
+--- Schema at: .paths./task/workflows/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  name: type: string
+  description: type: string
+  ordering: type: number
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+
+
+--- Schema at: .paths./task/workflows/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/workflows/create.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: number
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+
+
+--- Schema at: .paths./task/workflows/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+All properties:
+  name: type: string
+  description: type: string
+  ordering: type: number
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+
+
+--- Schema at: .paths./task/workflows/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/workflows/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: number
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+
+
+--- Schema at: .paths./task/workflows/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/workflows/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/workflows/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/workflows/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: number
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+
+
+--- Schema at: .paths./task/workflows/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/workflows/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/workflows/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: number
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  active: type: boolean
+
+
+--- Schema at: .paths./task/stages/create.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+Status-related properties:
+  task_status: type: integer
+
+All properties:
+  name: type: string
+  description: type: string
+  ordering: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  workflow_id: type: integer
+  color: type: string
+  task_status: type: integer [status-related]
+
+
+--- Schema at: .paths./task/stages/create.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/stages/create.post.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  task_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  workflow_id: type: integer
+  color: type: string
+  task_status: type: integer [status-related]
+
+
+--- Schema at: .paths./task/stages/update/{id}.post.requestBody.content.application/x-www-form-urlencoded.schema ---
+Status-related properties:
+  task_status: type: integer
+
+All properties:
+  name: type: string
+  description: type: string
+  ordering: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  workflow_id: type: integer
+  color: type: string
+  task_status: type: integer [status-related]
+
+
+--- Schema at: .paths./task/stages/update/{id}.post.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/stages/update/{id}.post.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  task_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  workflow_id: type: integer
+  color: type: string
+  task_status: type: integer [status-related]
+
+
+--- Schema at: .paths./task/stages/delete/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/stages/delete/{id}.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  id: type: integer
+
+
+--- Schema at: .paths./task/stages/get/{id}.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/stages/get/{id}.get.responses.200.content.application/json.schema.properties.response ---
+Status-related properties:
+  task_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  workflow_id: type: integer
+  color: type: string
+  task_status: type: integer [status-related]
+
+
+--- Schema at: .paths./task/stages/list.get.responses.200.content.application/json.schema ---
+All properties:
+  response: type: object
+
+
+--- Schema at: .paths./task/stages/list.get.responses.200.content.application/json.schema.properties.response ---
+All properties:
+  total: type: integer
+  page: type: integer
+  count: type: integer
+  items: type: array
+
+
+--- Schema at: .paths./task/stages/list.get.responses.200.content.application/json.schema.properties.response.properties.items.items ---
+Status-related properties:
+  task_status: type: integer
+
+All properties:
+  id: type: integer
+  name: type: string
+  description: type: string
+  ordering: type: integer
+  created_date: type: string
+  created_by: type: integer
+  updated_by: type: integer
+  updated_date: type: string
+  workflow_id: type: integer
+  color: type: string
+  task_status: type: integer [status-related]
+
+
+=== Status value lists (enums) found in task-related schemas ===
+  (No explicit status enum lists found in task schemas.)
+
+=== Summary ===
+- Task-related schemas are inline under paths (no components.schemas in this spec).
+- Main task entity (path /task/tasks/): status-related properties:
+  status (integer), status_firstviewdate (string), status_updated_by (integer),
+  status_updated_date (string), event_busy_status (integer), archive_status (integer).
+- workflow_id and workflow_stage_id link tasks to workflows/stages.
+- Task stages (/task/stages/) have task_status (integer).
+- The spec does not define enum or list of allowed status values; status is typed as integer (likely an ID).

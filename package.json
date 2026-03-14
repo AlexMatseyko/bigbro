@@ -1,0 +1,41 @@
+{
+  "name": "team-tracker-desktop",
+  "version": "1.0.0",
+  "description": "Team Tracker Desktop App",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:app": "cd app && npm run build",
+    "pack": "npm run build:app && electron-builder --dir",
+    "dist": "npm run build:app && electron-builder --win"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.team-tracker.desktop",
+    "productName": "Большой Брат",
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/build/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
