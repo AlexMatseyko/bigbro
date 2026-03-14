@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE } from '../config';
 
 function formatDurationHoursMinutes(seconds) {
   const h = Math.floor(seconds / 3600);

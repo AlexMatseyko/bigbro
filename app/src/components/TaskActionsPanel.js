@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE } from '../config';
 
 function TaskActionsPanel({ taskId, onSendSuccess }) {
   const [sending, setSending] = useState(false);

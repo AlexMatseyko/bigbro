@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build / dist
+dist/
+app/build
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# Logs and OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Large binaries (Electron and similar)
+*.exe

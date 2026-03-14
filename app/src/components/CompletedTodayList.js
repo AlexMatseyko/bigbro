@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE } from '../config';
 const POLL_INTERVAL_MS = 20000;
 
 function CompletedTodayList({ refreshTrigger }) {

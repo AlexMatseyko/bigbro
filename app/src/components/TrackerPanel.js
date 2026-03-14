@@ -1,6 +1,6 @@
 import React from 'react';
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE } from '../config';
 
 function TrackerPanel({ task, taskId, status, onStatusChange }) {
   const normalizedStatus = status || 'offline';

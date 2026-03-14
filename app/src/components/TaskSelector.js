@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import TaskSelectModal, { getTaskLabel, getDisplayStatusTitle } from './TaskSelectModal';
 
-const API_BASE = 'http://localhost:5000';
+import { API_BASE } from '../config';
 const TASKS_REFRESH_INTERVAL_MS = 60000; // обновление списка каждые 60 секунд
 
 /** Виртуальная задача «Свободен» — не привязана к Аспро, только индикатор. */

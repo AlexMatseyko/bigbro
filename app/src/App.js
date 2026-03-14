@@ -8,8 +8,8 @@ import CompletedTodayList from './components/CompletedTodayList';
 import ProfileModal from './components/ProfileModal';
 import ManagerPasswordModal from './components/ManagerPasswordModal';
 import ManagerDashboard from './components/ManagerDashboard';
+import { API_BASE } from './config';
 
-const API_BASE = 'http://localhost:5000';
 const ONLINE_TIME_INTERVAL_MS = 60000; // отправлять счётчик раз в минуту
 
 const STORAGE_KEY_STATUS = 'team-tracker-status';

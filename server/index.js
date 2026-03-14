@@ -2,7 +2,8 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
+// .env в корне проекта (рядом с app/ и server/)
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 const authRoutes = require('./routes/auth');
 const trackerRoutes = require('./routes/tracker');
@@ -43,10 +44,17 @@ app.use('/tracker', authenticateToken, trackerRoutes);
 app.use('/tasks', authenticateToken, tasksRoutes);
 app.use('/manager', managerRoutes);
 
-// Simple health check endpoint
-app.get('/', (req, res) => {
+// Health check
+app.get('/api/health', (req, res) => {
   res.json({ message: 'Team Tracker API is running.' });
 });
+
+// Production: раздаём собранный фронтенд (React build)
+const buildPath = path.join(__dirname, '..', 'app', 'build');
+if (process.env.NODE_ENV === 'production' && require('fs').existsSync(buildPath)) {
+  app.use(express.static(buildPath));
+  app.get('*', (req, res) => res.sendFile(path.join(buildPath, 'index.html')));
+}
 
 // Start server
 const server = app.listen(PORT, () => {
