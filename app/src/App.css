@@ -970,6 +970,20 @@ body {
   border-radius: 6px;
   color: var(--text);
 }
+.profile-debug-wrap {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border, #e2e8f0);
+}
+.profile-debug-wrap .profile-sync-aspro-btn {
+  margin-top: 0;
+}
+.profile-debug-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: calc(12px * var(--font-scale));
+  color: var(--text-muted, #64748b);
+}
 
 /* Text blocks */
 

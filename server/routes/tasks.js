@@ -69,12 +69,28 @@ function getTodayMSK() {
 const completedTodayStore = new Map();
 
 /**
- * Пользователь считается ответственным по задаче, если его Aspro ID совпадает с полем responsible_id.
+ * Извлекает ID ответственного из задачи в любом формате, в котором отдаёт Aspro (list, list2_list, agile и т.д.).
+ */
+function getTaskResponsibleId(task) {
+  if (!task || typeof task !== 'object') return null;
+  const r =
+    task.responsible_id ?? task.responsible_Id ?? task.RESPONSIBLE_ID
+    ?? task.responsibleId ?? task.responsible_user_id ?? task.responsibleUserId
+    ?? task.assignee_id ?? task.assigneeId
+    ?? (task.responsible && (task.responsible.id ?? task.responsible.ID))
+    ?? (task.assignee && (task.assignee.id ?? task.assignee.ID));
+  if (r == null || r === '') return null;
+  const num = Number(r);
+  return Number.isNaN(num) ? null : num;
+}
+
+/**
+ * Пользователь считается ответственным по задаче, если его Aspro ID совпадает с полем ответственного.
  * Постановщик (owner_id) при этом игнорируется — по ТЗ показываем только задачи, где пользователь именно Ответственный.
  */
 function isUserResponsibleForTask(task, userAsproId) {
   if (!task || !userAsproId) return false;
-  const responsibleId = task.responsible_id ?? task.responsible_Id ?? task.RESPONSIBLE_ID;
+  const responsibleId = getTaskResponsibleId(task);
   if (responsibleId == null) return false;
   return Number(responsibleId) === Number(userAsproId);
 }
@@ -171,9 +187,23 @@ router.get('/raw', async (req, res) => {
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
-    const { items: rawTasks, fromAgile } = await getAsproTasksListForUser(userAsproId);
-    if (!Array.isArray(rawTasks)) {
-      return res.status(502).json({ error: ASPRO_ERROR_MSG });
+    // Тот же порядок источников, что и в GET /tasks
+    let rawTasks = [];
+    let source = 'none';
+    const { items: apiItems } = await getAsproTasksListForUser(userAsproId);
+    if (Array.isArray(apiItems) && apiItems.length > 0) {
+      rawTasks = apiItems;
+      source = 'task/tasks/list or agile/issues/list';
+    } else {
+      const { tasks: allTasks } = await getAsproTaskListAll();
+      if (Array.isArray(allTasks) && allTasks.length > 0) {
+        rawTasks = allTasks;
+        source = 'tasks_list/all';
+      } else {
+        const { tasks: viewTasks } = await getAsproTaskListFromView();
+        if (Array.isArray(viewTasks)) rawTasks = viewTasks;
+        source = 'list2_list';
+      }
     }
 
     const withReason = rawTasks.map((t) => {
@@ -190,6 +220,7 @@ router.get('/raw', async (req, res) => {
         id: t.id,
         name: t.name,
         responsible_id: t.responsible_id,
+        _responsible_id_extracted: getTaskResponsibleId(t),
         owner_id: t.owner_id,
         status: t.status,
         workflow_stage_id: t.workflow_stage_id,
@@ -218,7 +249,7 @@ router.get('/raw', async (req, res) => {
     return res.json({
       debug: true,
       user_aspro_id: userAsproId,
-      source: fromAgile ? 'agile/issues/list' : 'task/tasks/list',
+      source,
       raw_count: rawTasks.length,
       after_filter_count: afterFilter.length,
       tasks: withReason

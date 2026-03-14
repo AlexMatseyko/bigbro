@@ -2,6 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { API_BASE } from '../config';
 
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
 function formatDurationHoursMinutes(seconds) {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -105,6 +111,30 @@ function ProfileModal({ open, onClose, status, token, onAvatarChange }) {
       })
       .catch((err) => setSyncMessage(err.message || 'Ошибка запроса'))
       .finally(() => setSyncingAspro(false));
+  };
+
+  /** Открыть ответ GET /tasks/raw в новом окне (для отладки: почему не показываются задачи). */
+  const handleDebugTasksRaw = () => {
+    const t = typeof token === 'string' ? token : (window.localStorage && window.localStorage.getItem('token'));
+    if (!t) return;
+    fetch(`${API_BASE}/tasks/raw`, { headers: { Authorization: `Bearer ${t}` } })
+      .then((res) => res.json())
+      .then((data) => {
+        const w = window.open('', '_blank');
+        if (w) {
+          const text = JSON.stringify(data, null, 2);
+          w.document.write(
+            '<pre style="font-family:monospace; white-space:pre-wrap; padding:16px; font-size:13px;">' +
+            escapeHtml(text) +
+            '</pre>'
+          );
+          w.document.title = 'Отладка: /tasks/raw';
+        } else {
+          alert('Блокировщик открыл окно? Разрешите всплывающие окна и нажмите снова. Или смотрите ответ в консоли (F12).');
+          console.log('GET /tasks/raw response:', data);
+        }
+      })
+      .catch((err) => alert('Ошибка: ' + (err.message || 'нет ответа')));
   };
 
   if (!open) return null;
@@ -223,6 +253,16 @@ function ProfileModal({ open, onClose, status, token, onAvatarChange }) {
               {syncMessage && (
                 <p className="profile-sync-message">{syncMessage}</p>
               )}
+              <div className="profile-debug-wrap">
+                <button
+                  type="button"
+                  className="profile-sync-aspro-btn"
+                  onClick={handleDebugTasksRaw}
+                >
+                  Отладка: ответ /tasks/raw
+                </button>
+                <span className="profile-debug-hint">Если задачи не показываются — нажмите, откроется ответ сервера в новом окне.</span>
+              </div>
             </>
           )}
         </div>
