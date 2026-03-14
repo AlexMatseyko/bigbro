@@ -5,6 +5,17 @@
  */
 const path = require('path');
 const fs = require('fs');
+
+// Явно загружаем .env из корня проекта (server/scripts -> server -> корень)
+const envPath = path.join(__dirname, '..', '..', '.env');
+require('dotenv').config({ path: envPath });
+
+if (!process.env.DATABASE_URL && (process.env.PGPASSWORD == null || process.env.PGPASSWORD === '')) {
+  console.error('Ошибка: не задан PGPASSWORD. Проверьте файл .env в корне проекта:', envPath);
+  console.error('Пример: PGPASSWORD=ваш_пароль');
+  process.exit(1);
+}
+
 const db = require('../db');
 
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'migrations');

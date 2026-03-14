@@ -12,7 +12,7 @@ const pool = new Pool(
         user: process.env.PGUSER || 'postgres',
         host: process.env.PGHOST || 'localhost',
         database: process.env.PGDATABASE || 'team_tracker',
-        password: process.env.PGPASSWORD,
+        password: process.env.PGPASSWORD != null ? String(process.env.PGPASSWORD) : undefined,
         port: parseInt(process.env.PGPORT || '5432', 10),
       }
 );
