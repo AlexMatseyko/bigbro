@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const db = require('../db');
 const {
   getTasksEndpoint,
   getStagesEndpoint,
@@ -13,6 +14,24 @@ const {
   getAsproTaskListAll,
   getAsproTaskPortalUrl
 } = require('../services/asproService');
+
+/**
+ * Возвращает aspro_id текущего пользователя: из JWT или из БД (если в токене нет — старый токен или синхронизация после входа).
+ * Так задачи из Aspro работают для всех пользователей, а не только для того, у кого aspro_id попал в токен при логине.
+ */
+async function resolveUserAsproId(req) {
+  if (req.user && req.user.aspro_id != null && req.user.aspro_id !== '') {
+    return req.user.aspro_id;
+  }
+  if (!req.user || !req.user.userId) return null;
+  try {
+    const r = await db.query('SELECT aspro_id FROM users WHERE id = $1', [req.user.userId]);
+    const asproId = r.rows[0] && r.rows[0].aspro_id;
+    return asproId != null && asproId !== '' ? asproId : null;
+  } catch (_) {
+    return null;
+  }
+}
 
 const ASPRO_ERROR_MSG = 'Ошибка загрузки задач из Aspro Cloud';
 
@@ -69,18 +88,37 @@ function getTodayMSK() {
 const completedTodayStore = new Map();
 
 /**
+ * Собирает все поля задачи, в названии которых есть responsib/assign/owner (для отладки формата Aspro).
+ */
+function getTaskResponsibleLikeFields(task) {
+  if (!task || typeof task !== 'object') return {};
+  const out = {};
+  for (const key of Object.keys(task)) {
+    const k = key.toLowerCase();
+    if (k.includes('responsib') || k.includes('assign') || k.includes('owner')) {
+      out[key] = task[key];
+    }
+  }
+  return out;
+}
+
+/**
  * Извлекает ID ответственного из задачи в любом формате, в котором отдаёт Aspro (list, list2_list, agile и т.д.).
  */
 function getTaskResponsibleId(task) {
   if (!task || typeof task !== 'object') return null;
+  const resp = task.responsible;
+  const assign = task.assignee;
   const r =
     task.responsible_id ?? task.responsible_Id ?? task.RESPONSIBLE_ID
     ?? task.responsibleId ?? task.responsible_user_id ?? task.responsibleUserId
     ?? task.assignee_id ?? task.assigneeId
-    ?? (task.responsible && (task.responsible.id ?? task.responsible.ID))
-    ?? (task.assignee && (task.assignee.id ?? task.assignee.ID));
+    ?? (resp && (resp.id ?? resp.ID ?? resp.value ?? resp.userId ?? resp.user_id))
+    ?? (assign && (assign.id ?? assign.ID ?? assign.value ?? assign.userId ?? assign.user_id));
   if (r == null || r === '') return null;
-  const num = Number(r);
+  const s = String(r).trim();
+  if (s === '') return null;
+  const num = Number(s);
   return Number.isNaN(num) ? null : num;
 }
 
@@ -96,8 +134,8 @@ function isUserResponsibleForTask(task, userAsproId) {
 }
 
 /**
- * Задача считается «активной», если не в архиве и не закрыта.
- * В Aspro у многих задач closed_date/archive_status приходят так, что строгая проверка отсекает рабочие задачи — считаем активной, если явно не закрыта и не в архиве.
+ * Задача показывается в списке, если не в архиве.
+ * Закрытые (closed_date) тоже показываем — иначе у пользователей не видны их задачи из Aspro.
  */
 function isActiveTask(task) {
   if (!task || typeof task !== 'object') return false;
@@ -105,10 +143,7 @@ function isActiveTask(task) {
   const isArchiveFlag = task.is_archive ?? task.IS_ARCHIVE;
   if (archiveStatus != null && Number(archiveStatus) !== 0) return false;
   if (isArchiveFlag != null && String(isArchiveFlag) !== '0' && String(isArchiveFlag) !== 'false') return false;
-  const closedDate = String(task.closed_date ?? task.CLOSED_DATE ?? '').trim();
-  if (!closedDate || closedDate === '0' || closedDate === 'false' || closedDate === '0000-00-00 00:00:00' || closedDate === '0000-00-00') return true;
-  const looksLikeRealDate = /^\d{4}-\d{2}-\d{2}/.test(closedDate) && closedDate.slice(0, 4) !== '0000';
-  return !looksLikeRealDate;
+  return true;
 }
 
 /**
@@ -120,27 +155,24 @@ function isTemplateTask(task) {
 
 router.get('/', async (req, res) => {
   try {
-    const userAsproId = req.user && req.user.aspro_id;
+    const userAsproId = await resolveUserAsproId(req);
     if (!userAsproId) {
       return res
         .status(400)
         .json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
 
-    // Источник 1: API module/task/tasks/list с filter[template]=0, filter[responsible]=userAsproId, filter[active]=1; fallback — agile/issues/list.
+    // Собираем задачи из всех источников и объединяем по id (чтобы новые задачи не терялись).
     const { items: apiItems } = await getAsproTasksListForUser(userAsproId);
-    let tasks = Array.isArray(apiItems) ? apiItems : [];
-
-    if (tasks.length === 0) {
-      const { tasks: allListTasks } = await getAsproTaskListAll();
-      tasks = Array.isArray(allListTasks) ? allListTasks : [];
+    const { tasks: allListTasks } = await getAsproTaskListAll();
+    const { tasks: listTasks } = await getAsproTaskListFromView();
+    const byId = new Map();
+    for (const t of [...(Array.isArray(apiItems) ? apiItems : []), ...(Array.isArray(allListTasks) ? allListTasks : []), ...(Array.isArray(listTasks) ? listTasks : [])]) {
+      if (t && t.id != null) byId.set(String(t.id), t);
     }
-    if (tasks.length === 0) {
-      const { tasks: listTasks } = await getAsproTaskListFromView();
-      tasks = Array.isArray(listTasks) ? listTasks : [];
-    }
+    let tasks = Array.from(byId.values());
 
-    // Только активные задачи, где пользователь — ответственный.
+    // Только не в архиве и где пользователь — ответственный.
     tasks = tasks.filter((t) => isActiveTask(t) && isUserResponsibleForTask(t, userAsproId));
 
     // Исключаем записи-шаблоны (сам шаблон задачи, не задачи из шаблона) по полям задачи: type=30 и public_template=1.
@@ -183,28 +215,20 @@ router.get('/', async (req, res) => {
  */
 router.get('/raw', async (req, res) => {
   try {
-    const userAsproId = req.user && req.user.aspro_id;
+    const userAsproId = await resolveUserAsproId(req);
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
-    // Тот же порядок источников, что и в GET /tasks
-    let rawTasks = [];
-    let source = 'none';
+    // Те же источники и объединение по id, что и в GET /tasks
     const { items: apiItems } = await getAsproTasksListForUser(userAsproId);
-    if (Array.isArray(apiItems) && apiItems.length > 0) {
-      rawTasks = apiItems;
-      source = 'task/tasks/list or agile/issues/list';
-    } else {
-      const { tasks: allTasks } = await getAsproTaskListAll();
-      if (Array.isArray(allTasks) && allTasks.length > 0) {
-        rawTasks = allTasks;
-        source = 'tasks_list/all';
-      } else {
-        const { tasks: viewTasks } = await getAsproTaskListFromView();
-        if (Array.isArray(viewTasks)) rawTasks = viewTasks;
-        source = 'list2_list';
-      }
+    const { tasks: allTasks } = await getAsproTaskListAll();
+    const { tasks: viewTasks } = await getAsproTaskListFromView();
+    const byId = new Map();
+    for (const t of [...(Array.isArray(apiItems) ? apiItems : []), ...(Array.isArray(allTasks) ? allTasks : []), ...(Array.isArray(viewTasks) ? viewTasks : [])]) {
+      if (t && t.id != null) byId.set(String(t.id), t);
     }
+    const rawTasks = Array.from(byId.values());
+    const source = 'merged: task/tasks/list + tasks_list/all + list2_list';
 
     const withReason = rawTasks.map((t) => {
       const active = isActiveTask(t);
@@ -221,6 +245,7 @@ router.get('/raw', async (req, res) => {
         name: t.name,
         responsible_id: t.responsible_id,
         _responsible_id_extracted: getTaskResponsibleId(t),
+        _raw_responsible_like: getTaskResponsibleLikeFields(t),
         owner_id: t.owner_id,
         status: t.status,
         workflow_stage_id: t.workflow_stage_id,
@@ -249,9 +274,11 @@ router.get('/raw', async (req, res) => {
     return res.json({
       debug: true,
       user_aspro_id: userAsproId,
+      user_aspro_id_type: typeof userAsproId,
       source,
       raw_count: rawTasks.length,
       after_filter_count: afterFilter.length,
+      hint: 'Если after_filter_count = 0, откройте задачу, которая должна быть у пользователя: сравните _responsible_id_extracted с user_aspro_id и посмотрите _raw_responsible_like — возможно ответственный приходит в другом поле.',
       tasks: withReason
     });
   } catch (err) {
@@ -266,7 +293,7 @@ router.get('/raw', async (req, res) => {
  */
 router.get('/completed-today', async (req, res) => {
   try {
-    const userAsproId = req.user && req.user.aspro_id;
+    const userAsproId = await resolveUserAsproId(req);
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
@@ -315,7 +342,7 @@ router.get('/completed-today', async (req, res) => {
  */
 router.get('/raw-from-view', async (req, res) => {
   try {
-    const userAsproId = req.user && req.user.aspro_id;
+    const userAsproId = await resolveUserAsproId(req);
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
@@ -388,7 +415,7 @@ const STAGE_NAMES_REVIEW = ['ожидает контроля', 'на прове�
  */
 router.post('/:id/start', async (req, res) => {
   try {
-    const userAsproId = req.user && req.user.aspro_id;
+    const userAsproId = await resolveUserAsproId(req);
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
@@ -443,7 +470,7 @@ router.post('/:id/start', async (req, res) => {
  */
 router.post('/:id/send', async (req, res) => {
   try {
-    const userAsproId = req.user && req.user.aspro_id;
+    const userAsproId = await resolveUserAsproId(req);
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }

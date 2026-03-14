@@ -2,29 +2,37 @@
   "name": "team-tracker-desktop",
   "version": "1.0.0",
   "description": "Team Tracker Desktop App",
-  "main": "main.js",
+  "main": "index.js",
   "scripts": {
     "start": "electron .",
     "build:app": "cd app && npm run build",
+    "build:app:vps": "cd app && cross-env REACT_APP_API_URL=http://185.76.241.217:5000 npm run build",
     "pack": "npm run build:app && electron-builder --dir",
-    "dist": "npm run build:app && electron-builder --win"
+    "dist": "npm run build:app && electron-builder --win",
+    "dist:vps": "npm run build:app:vps && electron-builder --win"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "electron": "^30.0.0",
     "electron-builder": "^25.1.8"
   },
   "build": {
     "appId": "com.team-tracker.desktop",
     "productName": "Большой Брат",
+    "extraMetadata": {
+      "main": "index.js"
+    },
     "files": [
+      "index.js",
       "main.js",
       "preload.js",
       "app/build/**",
       "package.json"
     ],
     "directories": {
+      "app": ".",
       "output": "dist"
     },
     "win": {

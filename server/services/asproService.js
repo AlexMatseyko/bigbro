@@ -232,7 +232,7 @@ async function getAsproTasksListForUser(asproUserId) {
 
   const tryTaskList = async (extraFilter) => {
     const collected = [];
-    for (let page = 1; page <= 5; page++) {
+    for (let page = 1; page <= 10; page++) {
       const query = {
         limit,
         page: String(page),
