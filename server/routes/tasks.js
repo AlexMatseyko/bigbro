@@ -103,7 +103,8 @@ function getTaskResponsibleLikeFields(task) {
 }
 
 /**
- * Извлекает ID ответственного из задачи в любом формате, в котором отдаёт Aspro (list, list2_list, agile и т.д.).
+ * Извлекает ID исполнителя (ответственного) из задачи. Используем только поля исполнителя, не owner_id (постановщик):
+ * в списке показываем задачи, где пользователь — исполнитель, независимо от того, кто постановщик.
  */
 function getTaskResponsibleId(task) {
   if (!task || typeof task !== 'object') return null;
@@ -113,24 +114,29 @@ function getTaskResponsibleId(task) {
     task.responsible_id ?? task.responsible_Id ?? task.RESPONSIBLE_ID
     ?? task.responsibleId ?? task.responsible_user_id ?? task.responsibleUserId
     ?? task.assignee_id ?? task.assigneeId
+    ?? task.executor_id ?? task.executorId ?? task.EXECUTOR_ID
     ?? (resp && (resp.id ?? resp.ID ?? resp.value ?? resp.userId ?? resp.user_id))
     ?? (assign && (assign.id ?? assign.ID ?? assign.value ?? assign.userId ?? assign.user_id));
   if (r == null || r === '') return null;
   const s = String(r).trim();
   if (s === '') return null;
   const num = Number(s);
-  return Number.isNaN(num) ? null : num;
+  return Number.isNaN(num) ? s : num;
 }
 
 /**
- * Пользователь считается ответственным по задаче, если его Aspro ID совпадает с полем ответственного.
- * Постановщик (owner_id) при этом игнорируется — по ТЗ показываем только задачи, где пользователь именно Ответственный.
+ * Задача показывается пользователю, если он — исполнитель (ответственный/assignee), не постановщик (owner).
+ * Сравнение по строке и по числу — в разных источниках Aspro ID может приходить как "123" или 123.
  */
 function isUserResponsibleForTask(task, userAsproId) {
-  if (!task || !userAsproId) return false;
+  if (!task || userAsproId == null || userAsproId === '') return false;
   const responsibleId = getTaskResponsibleId(task);
   if (responsibleId == null) return false;
-  return Number(responsibleId) === Number(userAsproId);
+  const uid = String(userAsproId).trim();
+  if (uid === '') return false;
+  if (Number(responsibleId) === Number(uid) && !Number.isNaN(Number(uid))) return true;
+  if (String(responsibleId) === uid) return true;
+  return false;
 }
 
 /**
@@ -162,12 +168,20 @@ router.get('/', async (req, res) => {
         .json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
 
-    // Собираем задачи из всех источников и объединяем по id (чтобы новые задачи не терялись).
-    const { items: apiItems } = await getAsproTasksListForUser(userAsproId);
-    const { tasks: allListTasks } = await getAsproTaskListAll();
-    const { tasks: listTasks } = await getAsproTaskListFromView();
+    // Собираем задачи из всех источников и объединяем по id (активные часто в Kanban/list2_list, завершённые — в API).
+    const [{ items: apiItems }, { tasks: allListTasks }, { tasks: listTasks }, { tasks: kanbanTasks }] = await Promise.all([
+      getAsproTasksListForUser(userAsproId),
+      getAsproTaskListAll(),
+      getAsproTaskListFromView(),
+      getAsproKanbanData()
+    ]);
     const byId = new Map();
-    for (const t of [...(Array.isArray(apiItems) ? apiItems : []), ...(Array.isArray(allListTasks) ? allListTasks : []), ...(Array.isArray(listTasks) ? listTasks : [])]) {
+    for (const t of [
+      ...(Array.isArray(apiItems) ? apiItems : []),
+      ...(Array.isArray(allListTasks) ? allListTasks : []),
+      ...(Array.isArray(listTasks) ? listTasks : []),
+      ...(Array.isArray(kanbanTasks) ? kanbanTasks : [])
+    ]) {
       if (t && t.id != null) byId.set(String(t.id), t);
     }
     let tasks = Array.from(byId.values());
@@ -219,12 +233,20 @@ router.get('/raw', async (req, res) => {
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
-    // Те же источники и объединение по id, что и в GET /tasks
-    const { items: apiItems } = await getAsproTasksListForUser(userAsproId);
-    const { tasks: allTasks } = await getAsproTaskListAll();
-    const { tasks: viewTasks } = await getAsproTaskListFromView();
+    // Те же источники и объединение по id, что и в GET /tasks (включая Kanban)
+    const [{ items: apiItems }, { tasks: allTasks }, { tasks: viewTasks }, { tasks: kanbanTasks }] = await Promise.all([
+      getAsproTasksListForUser(userAsproId),
+      getAsproTaskListAll(),
+      getAsproTaskListFromView(),
+      getAsproKanbanData()
+    ]);
     const byId = new Map();
-    for (const t of [...(Array.isArray(apiItems) ? apiItems : []), ...(Array.isArray(allTasks) ? allTasks : []), ...(Array.isArray(viewTasks) ? viewTasks : [])]) {
+    for (const t of [
+      ...(Array.isArray(apiItems) ? apiItems : []),
+      ...(Array.isArray(allTasks) ? allTasks : []),
+      ...(Array.isArray(viewTasks) ? viewTasks : []),
+      ...(Array.isArray(kanbanTasks) ? kanbanTasks : [])
+    ]) {
       if (t && t.id != null) byId.set(String(t.id), t);
     }
     const rawTasks = Array.from(byId.values());

@@ -217,9 +217,10 @@ function getAsproTaskPortalUrl(taskId) {
 
 /**
  * Список задач для пользователя из API task/tasks/list.
- * Фильтры: filter[responsible]=asproUserId, filter[type]=!30 (не шаблон), filter[responsible][neq]=0, limit=50.
- * Если задач 0 — fallback с filter[responsible_id], затем /module/agile/issues/list.
- * @param {string|number} asproUserId — ID пользователя в Aspro (responsible_id).
+ * Важно: показываем задачи, где пользователь — исполнитель (ответственный), а не постановщик (owner).
+ * В Aspro filter[responsible] может означать постановщика, поэтому запрашиваем по полям исполнителя:
+ * responsible_id, assignee_id, executor_id, user_id. Объединяем результаты по id.
+ * @param {string|number} asproUserId — ID пользователя в Aspro (исполнитель / ответственный).
  * @returns {Promise<{ items: Array, fromAgile: boolean }>}
  */
 async function getAsproTasksListForUser(asproUserId) {
@@ -236,9 +237,7 @@ async function getAsproTasksListForUser(asproUserId) {
       const query = {
         limit,
         page: String(page),
-        'filter[responsible]': uid,
         'filter[type]': '!30',
-        'filter[responsible][neq]': '0',
         ...extraFilter
       };
       const { url: fullUrl, headers } = await buildAsproRequestOptions(baseUrl, query);
@@ -261,10 +260,19 @@ async function getAsproTasksListForUser(asproUserId) {
     return collected;
   };
 
-  allItems = await tryTaskList({});
-  if (allItems.length === 0) {
-    allItems = await tryTaskList({ 'filter[responsible_id]': uid });
+  // Запрашиваем по полям исполнителя (ответственный), не постановщика (owner). Объединяем по id.
+  const [byResponsibleId, byAssigneeId, byExecutorId, byUserId, byResponsible] = await Promise.all([
+    tryTaskList({ 'filter[responsible_id]': uid }),
+    tryTaskList({ 'filter[assignee_id]': uid }),
+    tryTaskList({ 'filter[executor_id]': uid }),
+    tryTaskList({ 'filter[user_id]': uid }),
+    tryTaskList({ 'filter[responsible]': uid, 'filter[responsible][neq]': '0' }) // на случай если в API responsible = исполнитель
+  ]);
+  const byId = new Map();
+  for (const t of [...byResponsibleId, ...byAssigneeId, ...byExecutorId, ...byUserId, ...byResponsible]) {
+    if (t && t.id != null) byId.set(String(t.id), t);
   }
+  allItems = Array.from(byId.values());
 
   if (allItems.length === 0) {
     const agileUrl = getAgileIssuesEndpoint();
