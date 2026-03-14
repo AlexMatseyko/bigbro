@@ -1,4 +1,8 @@
+const path = require('path');
 const { Pool } = require('pg');
+
+// .env в корне проекта (рядом с app/ и server/) — нужно для миграций и скриптов
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
 // На VPS задайте DATABASE_URL или отдельные PG* переменные в .env
 const pool = new Pool(
