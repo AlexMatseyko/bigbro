@@ -247,15 +247,15 @@ router.get('/profile', authenticateToken, async (req, res) => {
     let userResult;
     try {
       userResult = await db.query(
-        'SELECT first_name, last_name, email, avatar FROM users WHERE id = $1',
+        'SELECT first_name, last_name, email, avatar, aspro_id FROM users WHERE id = $1',
         [userId]
       );
     } catch (colErr) {
       if (colErr.code === '42703' || /column.*does not exist/i.test(colErr.message)) {
-        userResult = await db.query(
-          'SELECT first_name, last_name, email FROM users WHERE id = $1',
-          [userId]
-        );
+userResult = await db.query(
+        'SELECT first_name, last_name, email, aspro_id FROM users WHERE id = $1',
+        [userId]
+      );
         if (userResult.rows[0]) userResult.rows[0].avatar = null;
       } else throw colErr;
     }
@@ -280,10 +280,41 @@ router.get('/profile', authenticateToken, async (req, res) => {
       last_name: user.last_name,
       email: user.email,
       avatar: avatarUrl,
-      today_online_seconds
+      today_online_seconds,
+      aspro_id: user.aspro_id || null
     });
   } catch (err) {
     console.error('Error in GET /auth/profile:', err);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+// POST /auth/sync-aspro — перепривязать aspro_id по email (если при регистрации не нашёлся или изменился логин в Aspro)
+router.post('/sync-aspro', authenticateToken, async (req, res) => {
+  const userId = req.user.userId;
+  if (!userId) {
+    return res.status(401).json({ message: 'Invalid token.' });
+  }
+  try {
+    const r = await db.query('SELECT email FROM users WHERE id = $1', [userId]);
+    if (!r.rows.length) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    const email = r.rows[0].email;
+    const asproId = await findAsproUserByEmail(email).catch((err) => {
+      console.error('sync-aspro findAsproUserByEmail error:', err);
+      return null;
+    });
+    await db.query('UPDATE users SET aspro_id = $1 WHERE id = $2', [asproId, userId]);
+    console.log('sync-aspro: user', userId, 'email', email, '-> aspro_id', asproId);
+    return res.json({
+      aspro_id: asproId,
+      message: asproId != null
+        ? 'Aspro ID привязан. Обновите страницу — задачи должны подтянуться.'
+        : 'Пользователь с таким email не найден в Aspro Cloud. Проверьте, что в портале Aspro логин совпадает с email.'
+    });
+  } catch (err) {
+    console.error('Error in POST /auth/sync-aspro:', err);
     return res.status(500).json({ message: 'Internal server error.' });
   }
 });

@@ -21,6 +21,8 @@ function ProfileModal({ open, onClose, status, token, onAvatarChange }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [syncingAspro, setSyncingAspro] = useState(false);
+  const [syncMessage, setSyncMessage] = useState(null);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -82,6 +84,27 @@ function ProfileModal({ open, onClose, status, token, onAvatarChange }) {
         setUploading(false);
         e.target.value = '';
       });
+  };
+
+  const handleSyncAspro = () => {
+    const t = typeof token === 'string' ? token : (window.localStorage && window.localStorage.getItem('token'));
+    if (!t) return;
+    setSyncingAspro(true);
+    setSyncMessage(null);
+    setError(null);
+    fetch(`${API_BASE}/auth/sync-aspro`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${t}` }
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setSyncMessage(data.message || (data.aspro_id != null ? 'Привязано.' : 'Не найден в Aspro.'));
+        if (data.aspro_id != null && profile) {
+          setProfile((prev) => (prev ? { ...prev, aspro_id: data.aspro_id } : null));
+        }
+      })
+      .catch((err) => setSyncMessage(err.message || 'Ошибка запроса'))
+      .finally(() => setSyncingAspro(false));
   };
 
   if (!open) return null;
@@ -176,7 +199,30 @@ function ProfileModal({ open, onClose, status, token, onAvatarChange }) {
                   <dt>Сегодня работает</dt>
                   <dd>{formatDurationHoursMinutes(profile.today_online_seconds || 0)}</dd>
                 </div>
+                <div className="profile-field">
+                  <dt>Aspro Cloud</dt>
+                  <dd>
+                    {profile.aspro_id != null ? (
+                      <>ID: {profile.aspro_id}</>
+                    ) : (
+                      <>
+                        Не привязан — задачи не подтянутся.
+                        <button
+                          type="button"
+                          className="profile-sync-aspro-btn"
+                          onClick={handleSyncAspro}
+                          disabled={syncingAspro}
+                        >
+                          {syncingAspro ? 'Проверка…' : 'Привязать к Aspro'}
+                        </button>
+                      </>
+                    )}
+                  </dd>
+                </div>
               </dl>
+              {syncMessage && (
+                <p className="profile-sync-message">{syncMessage}</p>
+              )}
             </>
           )}
         </div>
