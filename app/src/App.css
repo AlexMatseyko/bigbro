@@ -249,6 +249,12 @@ body {
   gap: 16px;
   padding: 16px 20px;
   border-left: 4px solid var(--table-theme-color, var(--accent));
+  position: relative;
+  overflow: visible;
+}
+
+.tables-list-item--dropdown-open {
+  z-index: 10;
 }
 
 .tables-list-main {
@@ -402,7 +408,7 @@ body {
   min-width: 200px;
   max-height: 280px;
   overflow-y: auto;
-  z-index: 1100;
+  z-index: 9999;
 }
 
 .methodist-picker-option {
@@ -472,7 +478,7 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
   min-width: 160px;
-  z-index: 1100;
+  z-index: 9999;
 }
 
 .theme-picker-option {
@@ -784,6 +790,11 @@ body {
   position: relative;
   flex-shrink: 0;
   display: flex;
+}
+
+.sheet-col-header-wrap .sheet-col-header {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .sheet-col-resize {

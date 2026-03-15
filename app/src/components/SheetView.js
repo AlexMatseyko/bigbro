@@ -16,7 +16,7 @@ const MAX_COL_WIDTH = 400;
  * Редактор таблицы в стиле Google Sheets. Строк: table.rowCount (по умолчанию 35), кнопка +20 строк.
  * В шапке: название (редактируемое), методист, тема.
  */
-function SheetView({ table, onSave, onBack }) {
+function SheetView({ table, onSave, onBack, initialFocusTitle }) {
   const rowCount = Math.max(DEFAULT_ROW_COUNT, Number(table.rowCount) || DEFAULT_ROW_COUNT);
   const [cells, setCells] = useState(() => ({ ...(table.cells || {}) }));
   const [colWidths, setColWidths] = useState(() => ({ ...(table.colWidths || {}) }));
@@ -132,6 +132,13 @@ function SheetView({ table, onSave, onBack }) {
   useEffect(() => {
     if (titleEditing && titleInputRef.current) titleInputRef.current.focus();
   }, [titleEditing]);
+
+  useEffect(() => {
+    if (initialFocusTitle) {
+      setTitleEditing(true);
+      setTitleValue(name);
+    }
+  }, [initialFocusTitle]);
 
   const startEdit = (col, row) => {
     setSelected({ col, row });

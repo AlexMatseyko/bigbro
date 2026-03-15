@@ -4,7 +4,7 @@ import { API_BASE } from '../config';
 /**
  * Выбор методиста (постановщика): выпадающий список пользователей с аватаркой и именем.
  */
-function MethodistPicker({ value, onChange, placeholder = 'Выберите методиста', className = '' }) {
+function MethodistPicker({ value, onChange, onOpenChange, placeholder = 'Выберите методиста', className = '' }) {
   const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -17,6 +17,10 @@ function MethodistPicker({ value, onChange, placeholder = 'Выберите ме
       .then(setUsers)
       .catch(() => setUsers([]));
   }, []);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     const onOutside = (e) => {

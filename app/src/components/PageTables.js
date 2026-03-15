@@ -20,12 +20,16 @@ function PageTables() {
   const [openTableId, setOpenTableId] = useState(null);
   const [editingNameId, setEditingNameId] = useState(null);
   const [editingNameValue, setEditingNameValue] = useState('');
+  const [openDropdownTableId, setOpenDropdownTableId] = useState(null);
+  const [newlyCreatedTableId, setNewlyCreatedTableId] = useState(null);
 
   const loadTables = useCallback(async () => {
     setLoading(true);
     try {
       const list = await fetchTables();
       setTables(Array.isArray(list) ? list : []);
+      const savedId = window.localStorage.getItem('team-tracker-open-table-id');
+      if (savedId && list.some((t) => t.id === savedId)) setOpenTableId(savedId);
     } catch (err) {
       console.error('Load tables error:', err);
       setTables([]);
@@ -38,6 +42,10 @@ function PageTables() {
     loadTables();
   }, [loadTables]);
 
+  useEffect(() => {
+    window.localStorage.setItem('team-tracker-open-table-id', openTableId || '');
+  }, [openTableId]);
+
   const handleCreateEmpty = async () => {
     setCreateModalOpen(false);
     const t = createEmptyTable();
@@ -45,6 +53,7 @@ function PageTables() {
       const created = await createTable(t);
       setTables((prev) => [created, ...prev]);
       setOpenTableId(created.id);
+      setNewlyCreatedTableId(created.id);
     } catch (err) {
       console.error(err);
       window.alert(err.message || 'Не удалось создать таблицу.');
@@ -58,6 +67,7 @@ function PageTables() {
       const created = await createTable(t);
       setTables((prev) => [created, ...prev]);
       setOpenTableId(created.id);
+      setNewlyCreatedTableId(created.id);
     } catch (err) {
       console.error(err);
       window.alert(err.message || 'Не удалось создать таблицу.');
@@ -71,6 +81,7 @@ function PageTables() {
       const created = await createTable(t);
       setTables((prev) => [created, ...prev]);
       setOpenTableId(created.id);
+      setNewlyCreatedTableId(created.id);
     } catch (err) {
       console.error(err);
       window.alert(err.message || 'Не удалось создать таблицу.');
@@ -79,7 +90,10 @@ function PageTables() {
 
   const handleOpenTable = (id) => setOpenTableId(id);
 
-  const handleBackFromSheet = () => setOpenTableId(null);
+  const handleBackFromSheet = () => {
+    setOpenTableId(null);
+    setNewlyCreatedTableId(null);
+  };
 
   const handleSaveSheet = async (updatedTable) => {
     try {
@@ -136,6 +150,7 @@ function PageTables() {
         table={openTable}
         onSave={handleSaveSheet}
         onBack={handleBackFromSheet}
+        initialFocusTitle={openTable.id === newlyCreatedTableId}
       />
     );
   }
@@ -166,11 +181,18 @@ function PageTables() {
           {tables.map((t) => (
             <li
               key={t.id}
-              className="tables-list-item card tracker-card"
+              className={`tables-list-item card tracker-card ${openDropdownTableId === t.id ? 'tables-list-item--dropdown-open' : ''}`}
               data-theme={t.theme != null ? t.theme : 1}
               style={{ '--table-theme-color': THEMES.find((x) => x.id === (t.theme ?? 1))?.color || THEMES[0].color }}
             >
               <div className="tables-list-main">
+                <button
+                  type="button"
+                  className="tables-list-open"
+                  onClick={() => handleOpenTable(t.id)}
+                >
+                  Открыть
+                </button>
                 <div className="tables-list-name-block">
                   {editingNameId === t.id ? (
                     <input
@@ -203,6 +225,7 @@ function PageTables() {
                   <MethodistPicker
                     value={t.methodist || null}
                     onChange={(methodist) => handleUpdateTableMeta(t.id, { methodist })}
+                    onOpenChange={(open) => setOpenDropdownTableId(open ? t.id : null)}
                     placeholder="Методист"
                   />
                 </div>
@@ -210,15 +233,9 @@ function PageTables() {
                   <ThemePicker
                     value={t.theme != null ? t.theme : null}
                     onChange={(theme) => handleUpdateTableMeta(t.id, { theme })}
+                    onOpenChange={(open) => setOpenDropdownTableId(open ? t.id : null)}
                   />
                 </div>
-                <button
-                  type="button"
-                  className="tables-list-open"
-                  onClick={() => handleOpenTable(t.id)}
-                >
-                  Открыть
-                </button>
                 <button
                   type="button"
                   className="btn btn-ghost tables-list-delete"

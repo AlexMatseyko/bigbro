@@ -32,7 +32,10 @@ function App() {
   const [completedTodayRefresh, setCompletedTodayRefresh] = useState(0);
   const [showManagerDashboard, setShowManagerDashboard] = useState(false);
   const [showManagerPasswordModal, setShowManagerPasswordModal] = useState(false);
-  const [currentPage, setCurrentPage] = useState(PAGES.home);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = window.localStorage.getItem('team-tracker-page');
+    return saved && Object.values(PAGES).includes(saved) ? saved : PAGES.home;
+  });
   const onlineSinceRef = useRef(null);
   const onlineIntervalRef = useRef(null);
 
@@ -286,6 +289,12 @@ function App() {
     window.localStorage.setItem(STORAGE_KEY_TASK, task || '');
     window.localStorage.setItem(STORAGE_KEY_TASK_ID, taskId != null ? String(taskId) : '');
   }, [isLoggedIn, status, task, taskId]);
+
+  // Сохраняем текущую вкладку для восстановления после обновления страницы
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    window.localStorage.setItem('team-tracker-page', currentPage);
+  }, [isLoggedIn, currentPage]);
 
   const MANAGER_PASSWORD = 'SecretShkolkovo';
 

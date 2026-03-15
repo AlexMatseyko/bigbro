@@ -13,9 +13,13 @@ const PLACEHOLDER = 'Выбрать тему';
 /**
  * Выбор темы конспекта — выпадающий список с плейсхолдером «Выбрать тему».
  */
-function ThemePicker({ value, onChange, className = '' }) {
+function ThemePicker({ value, onChange, onOpenChange, className = '' }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
+
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   useEffect(() => {
     const onOutside = (e) => {
