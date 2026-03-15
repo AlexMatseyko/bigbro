@@ -243,6 +243,10 @@ body {
   text-align: left;
 }
 
+.tables-list {
+  isolation: isolate;
+}
+
 .tables-list-item {
   display: flex;
   align-items: center;
@@ -251,10 +255,11 @@ body {
   border-left: 4px solid var(--table-theme-color, var(--accent));
   position: relative;
   overflow: visible;
+  z-index: 1;
 }
 
 .tables-list-item--dropdown-open {
-  z-index: 10;
+  z-index: 100;
 }
 
 .tables-list-main {
