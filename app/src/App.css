@@ -920,15 +920,17 @@ body {
   font-size: calc(11px * var(--font-scale));
   font-weight: 500;
   color: var(--success);
-  background: rgba(74, 222, 128, 0.2);
-  border: 1px solid rgba(74, 222, 128, 0.5);
+  background: var(--bg-elevated);
+  border: 1px solid rgba(74, 222, 128, 0.6);
   border-radius: var(--radius-md);
   cursor: pointer;
   white-space: nowrap;
   z-index: 2;
+  box-shadow: 0 0 0 2px var(--bg-elevated);
 }
 .sheet-cell-take-task:hover:not(:disabled) {
-  background: rgba(74, 222, 128, 0.3);
+  background: var(--dropdown-bg);
+  border-color: var(--success);
 }
 .sheet-cell-take-task:disabled {
   opacity: 0.7;
