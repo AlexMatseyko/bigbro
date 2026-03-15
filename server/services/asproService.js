@@ -229,11 +229,13 @@ async function getAsproTasksListForUser(asproUserId) {
 
   const baseUrl = getTasksEndpoint();
   const limit = '50';
+  /** Страниц на каждый фильтр (50 × maxPages задач). Новые задачи часто имеют большой id — при сортировке по id ASC нужны все страницы до лимита. */
+  const maxPages = 50;
   let allItems = [];
 
   const tryTaskList = async (extraFilter) => {
     const collected = [];
-    for (let page = 1; page <= 10; page++) {
+    for (let page = 1; page <= maxPages; page++) {
       const query = {
         limit,
         page: String(page),
@@ -272,6 +274,33 @@ async function getAsproTasksListForUser(asproUserId) {
   for (const t of [...byResponsibleId, ...byAssigneeId, ...byExecutorId, ...byUserId, ...byResponsible]) {
     if (t && t.id != null) byId.set(String(t.id), t);
   }
+
+  // Доп. запрос «новые сначала»: если API лимитирует общий список (напр. 375), новые задачи с большим id не попадают.
+  const orderVariants = [
+    { 'filter[type]': '!30', 'order[id]': 'desc' },
+    { 'filter[type]': '!30', order: 'id_desc' },
+    { 'filter[type]': '!30', sort: '-id' },
+    { 'order[id]': 'desc' }
+  ];
+  for (const extra of orderVariants) {
+    const query = {
+      limit: '100',
+      page: '1',
+      'filter[responsible_id]': uid,
+      ...extra
+    };
+    const { url: fullUrl, headers } = await buildAsproRequestOptions(baseUrl, query);
+    const res = await fetch(fullUrl, { method: 'GET', headers });
+    const data = await res.json().catch(() => ({}));
+    const items = data.response?.items ?? data.items ?? (Array.isArray(data) ? data : []);
+    if (Array.isArray(items) && items.length > 0) {
+      for (const t of items) {
+        if (t && t.id != null) byId.set(String(t.id), t);
+      }
+      break;
+    }
+  }
+
   allItems = Array.from(byId.values());
 
   if (allItems.length === 0) {

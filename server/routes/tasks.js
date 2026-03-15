@@ -211,6 +211,16 @@ router.get('/', async (req, res) => {
     ]) {
       if (t && t.id != null) byId.set(String(t.id), t);
     }
+    // Догрузка по ID: если API Aspro не отдаёт задачу в списке (лимит/сортировка), можно передать includeTaskIds=5571,5572
+    const includeIds = req.query.includeTaskIds ? String(req.query.includeTaskIds).split(',').map((s) => s.trim()).filter(Boolean) : [];
+    for (const tid of includeIds) {
+      if (byId.has(tid)) continue;
+      const task = await getAsproTaskById(tid);
+      if (task && (task.id != null || task.ID != null)) {
+        const id = String(task.id ?? task.ID);
+        byId.set(id, task);
+      }
+    }
     let tasks = Array.from(byId.values());
 
     // Только не в архиве, не завершённые, не шаблоны, и где пользователь — исполнитель.
