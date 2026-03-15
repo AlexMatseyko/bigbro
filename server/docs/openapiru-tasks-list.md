@@ -53,6 +53,16 @@
 - `/task/stages/list` — этапы workflow (маппинг «В работе» и т.д.)
 - `/task/taskslists/list` — список «списков задач» (представлений); в spec параметры не описаны. Отдельного параметра **view_id** / **list_id** для выбора представления в `/task/tasks/list` в openapiru **нет**.
 
+### Создание задачи (POST)
+
+В openapiru может быть путь вида `/task/tasks/add` или `/task/tasks/create`. В коде перебираются пути из списка; если ни один не вернул ID задачи, задайте точный путь в **.env**:
+
+```env
+ASPRO_TASKS_ADD_PATH=/module/task/tasks/add
+```
+
+Точный эндпоинт и формат тела (JSON или form-urlencoded) см. в [aspro.cloud/api](https://aspro.cloud/api/). Запрос отправляется с полями `name`, `owner_id`, `responsible_id`, `project_id` (опционально).
+
 ---
 
 ## REST list2_list (в спецификации не описан)

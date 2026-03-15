@@ -204,10 +204,15 @@ function getTaskUpdateUrl(id) {
   return `${ASPRO_API_BASE}/module/task/tasks/update/${encodeURIComponent(String(id))}`;
 }
 
-/** URL создания задачи: POST /module/task/tasks/add (body: application/x-www-form-urlencoded). */
-const ASPRO_TASKS_ADD_PATH = '/module/task/tasks/add';
-function getTaskAddUrl() {
-  return `${ASPRO_API_BASE}${ASPRO_TASKS_ADD_PATH}`;
+/** Пути для создания задачи (пробуем по порядку, если предыдущий не вернул id). См. https://aspro.cloud/api/ */
+const ASPRO_TASKS_ADD_PATHS = [
+  process.env.ASPRO_TASKS_ADD_PATH,
+  '/module/task/tasks/add',
+  '/module/task/tasks/create',
+  '/module/task/task/add'
+].filter(Boolean);
+function getTaskAddUrls() {
+  return ASPRO_TASKS_ADD_PATHS.map((p) => `${ASPRO_API_BASE}${p}`);
 }
 
 /** Список проектов: GET /module/task/projects/list (если API поддерживает). */
@@ -854,6 +859,8 @@ async function findOrCreateAsproProject(projectName) {
 
 /**
  * Создать задачу в Aspro.
+ * По документации https://aspro.cloud/api/ эндпоинт и формат могут отличаться; поддерживаются JSON и form-urlencoded.
+ * Путь можно переопределить в .env: ASPRO_TASKS_ADD_PATH (например /module/task/tasks/create).
  * @param {string} title — название задачи
  * @param {Object} opts — owner_id (постановщик, aspro_id), responsible_id (исполнитель, aspro_id), project_id (опционально)
  * @returns {Promise<{ ok: boolean, taskId?: string|number, error?: string }>}
@@ -861,32 +868,67 @@ async function findOrCreateAsproProject(projectName) {
 async function createAsproTask(title, opts = {}) {
   const name = String(title || '').trim();
   if (!name) return { ok: false, error: 'Название задачи пусто' };
-  const addUrl = getTaskAddUrl();
-  const { url: fullUrl, headers } = await buildAsproRequestOptions(addUrl);
-  const body = new URLSearchParams();
-  body.set('name', name);
-  if (opts.owner_id != null && opts.owner_id !== '') body.set('owner_id', String(opts.owner_id));
-  if (opts.responsible_id != null && opts.responsible_id !== '') body.set('responsible_id', String(opts.responsible_id));
-  if (opts.project_id != null && opts.project_id !== '') body.set('project_id', String(opts.project_id));
-  try {
-    const res = await fetch(fullUrl, {
+  const payload = { name };
+  if (opts.owner_id != null && opts.owner_id !== '') payload.owner_id = String(opts.owner_id);
+  if (opts.responsible_id != null && opts.responsible_id !== '') payload.responsible_id = String(opts.responsible_id);
+  if (opts.project_id != null && opts.project_id !== '') payload.project_id = String(opts.project_id);
+
+  const tryOneUrl = async (fullUrl, useJson) => {
+    const { url: urlWithKey, headers } = await buildAsproRequestOptions(fullUrl);
+    const options = {
       method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString()
-    });
-    const data = await res.json().catch(() => ({}));
-    const response = data.response ?? data;
-    const taskId = response?.id ?? response?.ID ?? data.id ?? data.ID;
-    if (res.ok && taskId != null) {
-      return { ok: true, taskId };
+      headers: { ...headers }
+    };
+    if (useJson) {
+      options.headers['Content-Type'] = 'application/json';
+      options.body = JSON.stringify(payload);
+    } else {
+      options.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      options.body = new URLSearchParams(payload).toString();
     }
-    const errMsg = response?.message ?? data.message ?? data.error?.message ?? (res.status ? `HTTP ${res.status}` : 'Ошибка API');
-    console.warn('Aspro createAsproTask:', errMsg, data);
-    return { ok: false, error: errMsg };
-  } catch (err) {
-    console.error('Aspro createAsproTask error:', err.message);
-    return { ok: false, error: err.message };
+    const res = await fetch(urlWithKey, options);
+    const rawText = await res.text().catch(() => '');
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (_) {
+      data = { _raw: rawText.slice(0, 500) };
+    }
+    const response = data.response ?? data.data ?? data.result ?? data;
+    const taskId =
+      response?.id ?? response?.ID
+      ?? response?.task_id ?? response?.taskId
+      ?? data.id ?? data.ID ?? data.task_id ?? data.taskId
+      ?? (response && response.task && (response.task.id ?? response.task.ID));
+    return { res, data, taskId, response };
+  };
+
+  const urls = getTaskAddUrls();
+  for (let i = 0; i < urls.length; i++) {
+    try {
+      const fullUrl = urls[i];
+      let result = await tryOneUrl(fullUrl, true);
+      if (result.res.status === 415 || result.res.status === 404) {
+        result = await tryOneUrl(fullUrl, false);
+      }
+      const { res, data, taskId, response } = result;
+      if (res.ok && taskId != null) {
+        console.log('Aspro createAsproTask: success, url=', fullUrl.replace(/api_key=[^&]+/, 'api_key=***'), ', taskId=', taskId);
+        return { ok: true, taskId };
+      }
+      if (res.ok) {
+        console.warn('Aspro createAsproTask: HTTP 200 but no task id. URL:', fullUrl.replace(/api_key=[^&]+/, 'api_key=***'), 'Response:', JSON.stringify(data).slice(0, 600));
+        continue;
+      }
+      if (res.status === 404 || res.status === 405) continue;
+      const errMsg = (response && (response.message ?? response.error ?? response.msg)) ?? data.message ?? data.error?.message ?? `HTTP ${res.status}`;
+      console.warn('Aspro createAsproTask:', fullUrl, res.status, errMsg);
+      return { ok: false, error: errMsg };
+    } catch (err) {
+      console.warn('Aspro createAsproTask try url', urls[i], err.message);
+    }
   }
+  return { ok: false, error: 'Не удалось создать задачу: ни один эндпоинт не вернул ID. Укажите рабочий путь в .env (ASPRO_TASKS_ADD_PATH) по документации https://aspro.cloud/api/' };
 }
 
 module.exports = {
