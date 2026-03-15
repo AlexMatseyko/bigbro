@@ -208,6 +208,332 @@ body {
   color: var(--text-muted);
 }
 
+/* --- Таблицы (раздел) --- */
+.tables-page {
+  width: 100%;
+}
+
+.tables-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.tables-create-btn {
+  flex-shrink: 0;
+}
+
+.tables-empty {
+  padding: 32px 28px;
+}
+
+.tables-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tables-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.tables-list-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+}
+
+.tables-list-card:hover .tables-list-name {
+  color: var(--accent);
+}
+
+.tables-list-name {
+  font-size: calc(16px * var(--font-scale));
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tables-list-meta {
+  font-size: calc(13px * var(--font-scale));
+  color: var(--text-muted);
+}
+
+.tables-list-delete {
+  flex-shrink: 0;
+  font-size: calc(13px * var(--font-scale));
+  color: var(--text-muted);
+}
+
+.tables-list-delete:hover {
+  color: var(--danger);
+}
+
+/* Модальные окна (создание таблицы, шаблон) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: calc(18px * var(--font-scale));
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.modal-close:hover {
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.create-table-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.create-table-option {
+  padding: 14px 18px;
+  text-align: left;
+  font-size: calc(15px * var(--font-scale));
+  color: var(--text);
+  background: var(--bg-elevated-soft);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.create-table-option:hover {
+  background: var(--accent-soft);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.template-tasks-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: calc(14px * var(--font-scale));
+  color: var(--text);
+}
+
+.template-tasks-input {
+  width: 100%;
+  max-width: 120px;
+  padding: 10px 14px;
+  font-size: calc(15px * var(--font-scale));
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.template-tasks-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.template-tasks-hint {
+  margin: 14px 0 0;
+  font-size: calc(13px * var(--font-scale));
+  color: var(--text-muted);
+}
+
+/* Редактор таблицы (Google Sheets–подобный) */
+.sheet-view {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.sheet-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sheet-back {
+  flex-shrink: 0;
+}
+
+.sheet-title {
+  font-size: calc(18px * var(--font-scale));
+  font-weight: 600;
+  color: var(--text);
+}
+
+.sheet-wrap {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated-soft);
+}
+
+.sheet-grid {
+  display: flex;
+  flex-direction: column;
+  min-width: min-content;
+}
+
+.sheet-corner,
+.sheet-col-header,
+.sheet-row-header {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: calc(12px * var(--font-scale));
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sheet-header-row {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.sheet-col-headers {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.sheet-row-wrap {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.sheet-row {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.sheet-row-header {
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sheet-cell {
+  width: var(--cell-width, 100px);
+  height: var(--cell-height, 28px);
+  min-width: var(--cell-width, 100px);
+  min-height: var(--cell-height, 28px);
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated-soft);
+  color: var(--text);
+  font-size: calc(13px * var(--font-scale));
+  cursor: cell;
+  position: relative;
+}
+
+.sheet-cell:hover {
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.sheet-cell.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.sheet-cell.editing {
+  padding: 0;
+}
+
+.sheet-cell-value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.sheet-cell-input {
+  width: 100%;
+  height: 100%;
+  padding: 0 8px;
+  border: none;
+  background: var(--bg);
+  color: var(--text);
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.sheet-cell-input:focus {
+  outline: none;
+}
+
 .tracker-card {
   width: 100%;
   max-width: none;
