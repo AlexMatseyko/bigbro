@@ -8,7 +8,12 @@ import CompletedTodayList from './components/CompletedTodayList';
 import ProfileModal from './components/ProfileModal';
 import ManagerPasswordModal from './components/ManagerPasswordModal';
 import ManagerDashboard from './components/ManagerDashboard';
+import PageTables from './components/PageTables';
+import PageStats from './components/PageStats';
+import PageFaq from './components/PageFaq';
 import { API_BASE } from './config';
+
+const PAGES = { home: 'home', tables: 'tables', stats: 'stats', faq: 'faq' };
 
 const ONLINE_TIME_INTERVAL_MS = 60000; // отправлять счётчик раз в минуту
 
@@ -27,6 +32,7 @@ function App() {
   const [completedTodayRefresh, setCompletedTodayRefresh] = useState(0);
   const [showManagerDashboard, setShowManagerDashboard] = useState(false);
   const [showManagerPasswordModal, setShowManagerPasswordModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(PAGES.home);
   const onlineSinceRef = useRef(null);
   const onlineIntervalRef = useRef(null);
 
@@ -320,33 +326,65 @@ function App() {
         </div>
       ) : (
         <div className="tracker-container">
-          <header className="top-bar">
-            <div className="top-bar-title-wrap">
-              <h1 className="app-title app-title-main">Большой Брат</h1>
-              <span className="app-title-by">by Школково</span>
+          <header className="app-header">
+            <div className="top-bar">
+              <div className="top-bar-title-wrap">
+                <h1 className="app-title app-title-main">Большой Брат</h1>
+                <span className="app-title-by">by Школково</span>
+              </div>
+              <div className="top-bar-right">
+                <button
+                  type="button"
+                  className="user-trigger"
+                  onClick={() => setProfileOpen(true)}
+                  aria-label="Открыть профиль"
+                >
+                  <span className="header-avatar">
+                    {userAvatar ? (
+                      <img src={userAvatar.startsWith('http') ? userAvatar : `${API_BASE}${userAvatar}`} alt="" />
+                    ) : (
+                      <span className="header-avatar-placeholder">
+                        {userName ? userName.split(/\s+/).map((n) => n[0]).join('').slice(0, 2).toUpperCase() || '?' : '?'}
+                      </span>
+                    )}
+                  </span>
+                  <span className="user-name">{userName}</span>
+                </button>
+                <button className="btn btn-ghost btn-logout" onClick={handleLogout}>
+                  Выход
+                </button>
+              </div>
             </div>
-            <div className="top-bar-right">
+            <nav className="app-nav" aria-label="Основная навигация">
               <button
                 type="button"
-                className="user-trigger"
-                onClick={() => setProfileOpen(true)}
-                aria-label="Открыть профиль"
+                className={`app-nav-btn ${currentPage === PAGES.home ? 'active' : ''}`}
+                onClick={() => setCurrentPage(PAGES.home)}
               >
-                <span className="header-avatar">
-                  {userAvatar ? (
-                    <img src={userAvatar.startsWith('http') ? userAvatar : `${API_BASE}${userAvatar}`} alt="" />
-                  ) : (
-                    <span className="header-avatar-placeholder">
-                      {userName ? userName.split(/\s+/).map((n) => n[0]).join('').slice(0, 2).toUpperCase() || '?' : '?'}
-                    </span>
-                  )}
-                </span>
-                <span className="user-name">{userName}</span>
+                Главная
               </button>
-              <button className="btn btn-ghost btn-logout" onClick={handleLogout}>
-                Выход
+              <button
+                type="button"
+                className={`app-nav-btn ${currentPage === PAGES.tables ? 'active' : ''}`}
+                onClick={() => setCurrentPage(PAGES.tables)}
+              >
+                Таблицы
               </button>
-            </div>
+              <button
+                type="button"
+                className={`app-nav-btn ${currentPage === PAGES.stats ? 'active' : ''}`}
+                onClick={() => setCurrentPage(PAGES.stats)}
+              >
+                Статистика
+              </button>
+              <button
+                type="button"
+                className={`app-nav-btn ${currentPage === PAGES.faq ? 'active' : ''}`}
+                onClick={() => setCurrentPage(PAGES.faq)}
+              >
+                FAQ / Поддержка
+              </button>
+            </nav>
           </header>
 
           <ProfileModal
@@ -358,30 +396,37 @@ function App() {
           />
 
           <main className="tracker-main">
-            <section className="card tracker-card">
-              <TaskSelector
-                task={task}
-                onTaskChange={(label, id) => {
-                  setTask(typeof label === 'string' ? label : '');
-                  setTaskId(id ?? null);
-                }}
-              />
-              <TrackerPanel
-                task={task}
-                taskId={taskId}
-                status={status}
-                onStatusChange={handleStatusChange}
-              />
-            </section>
-            <TaskActionsPanel
-              taskId={taskId}
-              onSendSuccess={() => {
-                setTask('');
-                setTaskId(null);
-                setCompletedTodayRefresh((n) => n + 1);
-              }}
-            />
-            <CompletedTodayList refreshTrigger={completedTodayRefresh} />
+            {currentPage === PAGES.home && (
+              <>
+                <section className="card tracker-card">
+                  <TaskSelector
+                    task={task}
+                    onTaskChange={(label, id) => {
+                      setTask(typeof label === 'string' ? label : '');
+                      setTaskId(id ?? null);
+                    }}
+                  />
+                  <TrackerPanel
+                    task={task}
+                    taskId={taskId}
+                    status={status}
+                    onStatusChange={handleStatusChange}
+                  />
+                </section>
+                <TaskActionsPanel
+                  taskId={taskId}
+                  onSendSuccess={() => {
+                    setTask('');
+                    setTaskId(null);
+                    setCompletedTodayRefresh((n) => n + 1);
+                  }}
+                />
+                <CompletedTodayList refreshTrigger={completedTodayRefresh} />
+              </>
+            )}
+            {currentPage === PAGES.tables && <PageTables />}
+            {currentPage === PAGES.stats && <PageStats />}
+            {currentPage === PAGES.faq && <PageFaq />}
           </main>
           <footer className="app-footer-manager">
             <button
