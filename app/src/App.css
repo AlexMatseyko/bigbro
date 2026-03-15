@@ -239,41 +239,93 @@ body {
   gap: 12px;
 }
 
+.tables-page-title {
+  text-align: left;
+}
+
 .tables-list-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   padding: 16px 20px;
+  border-left: 4px solid var(--table-theme-color, var(--accent));
 }
 
-.tables-list-card {
+.tables-list-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
   flex: 1;
+  min-width: 0;
+}
+
+.tables-list-name-block {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
+  gap: 2px;
+  min-width: 140px;
   text-align: left;
-  padding: 0;
-  font: inherit;
 }
 
-.tables-list-card:hover .tables-list-name {
+.tables-list-name-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: calc(16px * var(--font-scale));
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.tables-list-name-btn:hover {
   color: var(--accent);
 }
 
-.tables-list-name {
-  font-size: calc(16px * var(--font-scale));
-  font-weight: 600;
+.tables-list-name-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 6px 10px;
+  font-size: calc(15px * var(--font-scale));
   color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.tables-list-name-input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 .tables-list-meta {
-  font-size: calc(13px * var(--font-scale));
+  font-size: calc(12px * var(--font-scale));
   color: var(--text-muted);
+}
+
+.tables-list-methodist {
+  flex-shrink: 0;
+}
+
+.tables-list-theme {
+  flex-shrink: 0;
+}
+
+.tables-list-open {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: calc(13px * var(--font-scale));
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.tables-list-open:hover {
+  background: rgba(56, 189, 248, 0.25);
 }
 
 .tables-list-delete {
@@ -284,6 +336,120 @@ body {
 
 .tables-list-delete:hover {
   color: var(--danger);
+}
+
+/* Methodist picker */
+.methodist-picker {
+  position: relative;
+}
+
+.methodist-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-elevated-soft);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: calc(13px * var(--font-scale));
+  cursor: pointer;
+}
+
+.methodist-picker-trigger:hover {
+  border-color: var(--accent);
+}
+
+.methodist-picker-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+.methodist-picker-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.methodist-picker-label {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.methodist-picker-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 4px 0 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  min-width: 200px;
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.methodist-picker-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: calc(14px * var(--font-scale));
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.methodist-picker-option:hover {
+  background: var(--dropdown-bg-hover);
+}
+
+/* Theme picker */
+.theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.theme-picker-chip {
+  padding: 6px 12px;
+  font-size: calc(12px * var(--font-scale));
+  font-weight: 500;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.theme-picker-chip:hover {
+  border-color: var(--theme-color);
+}
+
+.theme-picker-chip.active {
+  border-color: var(--theme-color);
+  box-shadow: 0 0 0 2px var(--theme-color);
 }
 
 /* Модальные окна (создание таблицы, шаблон) */
@@ -402,6 +568,44 @@ body {
   color: var(--text-muted);
 }
 
+.template-tasks-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.template-tasks-tab {
+  padding: 10px 16px;
+  font-size: calc(14px * var(--font-scale));
+  color: var(--text-muted);
+  background: var(--bg-elevated-soft);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.template-tasks-tab:hover {
+  color: var(--text);
+}
+
+.template-tasks-tab.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.template-tasks-file {
+  display: block;
+  margin-top: 6px;
+  font-size: calc(13px * var(--font-scale));
+}
+
+.template-tasks-error {
+  margin: 10px 0 0;
+  font-size: calc(13px * var(--font-scale));
+  color: var(--danger);
+}
+
 /* Редактор таблицы (Google Sheets–подобный) */
 .sheet-view {
   width: 100%;
@@ -415,16 +619,60 @@ body {
   align-items: center;
   gap: 16px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .sheet-back {
   flex-shrink: 0;
 }
 
+.sheet-toolbar-title {
+  min-width: 0;
+}
+
 .sheet-title {
   font-size: calc(18px * var(--font-scale));
   font-weight: 600;
   color: var(--text);
+  cursor: pointer;
+}
+
+.sheet-title:hover {
+  color: var(--accent);
+}
+
+.sheet-title-input {
+  width: 100%;
+  min-width: 160px;
+  max-width: 320px;
+  padding: 8px 12px;
+  font-size: calc(18px * var(--font-scale));
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.sheet-title-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.sheet-toolbar-methodist {
+  margin-left: auto;
+}
+
+.sheet-toolbar-theme {
+  flex-shrink: 0;
+}
+
+.sheet-footer {
+  margin-top: 16px;
+}
+
+.sheet-add-rows {
+  font-size: calc(14px * var(--font-scale));
 }
 
 .sheet-wrap {

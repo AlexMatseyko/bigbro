@@ -237,6 +237,35 @@ router.get('/me', async (req, res) => {
   }
 });
 
+// GET /auth/users — список пользователей (id, first_name, last_name, avatar) для выбора методиста и т.п.
+router.get('/users', authenticateToken, async (req, res) => {
+  try {
+    let result;
+    try {
+      result = await db.query(
+        'SELECT id, first_name, last_name, avatar FROM users ORDER BY last_name, first_name'
+      );
+    } catch (colErr) {
+      if (colErr.code === '42703' || /column.*does not exist/i.test(colErr.message)) {
+        result = await db.query(
+          'SELECT id, first_name, last_name FROM users ORDER BY last_name, first_name'
+        );
+        result.rows.forEach((r) => { r.avatar = null; });
+      } else throw colErr;
+    }
+    const users = result.rows.map((u) => ({
+      id: u.id,
+      first_name: u.first_name,
+      last_name: u.last_name,
+      avatar: u.avatar ? '/uploads/avatars/' + path.basename(u.avatar) : null
+    }));
+    return res.json(users);
+  } catch (err) {
+    console.error('Error in GET /auth/users:', err);
+    return res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
 // GET /auth/profile — профиль пользователя + время онлайн за сегодня (МСК)
 router.get('/profile', authenticateToken, async (req, res) => {
   const userId = req.user.userId;
