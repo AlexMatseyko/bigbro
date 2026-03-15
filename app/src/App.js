@@ -59,6 +59,11 @@ function App() {
         const fullName = `${data.last_name} ${data.first_name}`;
         setUserName(fullName);
         setIsLoggedIn(true);
+        // Восстановление вкладки после обновления страницы
+        const savedPage = window.localStorage.getItem('team-tracker-page');
+        if (savedPage && Object.values(PAGES).includes(savedPage)) {
+          setCurrentPage(savedPage);
+        }
         // Восстановление статуса и задачи после рефреша
         const savedStatus = window.localStorage.getItem(STORAGE_KEY_STATUS);
         const savedTask = window.localStorage.getItem(STORAGE_KEY_TASK);

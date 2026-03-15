@@ -270,9 +270,15 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 4px;
   min-width: 140px;
   text-align: left;
+}
+
+.tables-list-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .tables-list-name-btn {
@@ -408,7 +414,7 @@ body {
   min-width: 200px;
   max-height: 280px;
   overflow-y: auto;
-  z-index: 9999;
+  z-index: 1200;
 }
 
 .methodist-picker-option {
@@ -478,7 +484,7 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
   min-width: 160px;
-  z-index: 9999;
+  z-index: 1200;
 }
 
 .theme-picker-option {
@@ -588,6 +594,39 @@ body {
 }
 
 .create-table-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.create-table-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.create-table-name-input {
+  max-width: none !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.create-table-pickers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.create-table-picker-label {
+  flex: 1;
+  min-width: 140px;
+}
+
+.create-table-picker-wrap {
+  margin-top: 4px;
+}
+
+.create-table-options {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -790,17 +829,17 @@ body {
   position: relative;
   flex-shrink: 0;
   display: flex;
+  align-items: stretch;
 }
 
 .sheet-col-header-wrap .sheet-col-header {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   box-sizing: border-box;
 }
 
 .sheet-col-resize {
-  position: absolute;
-  top: 0;
-  right: 0;
+  flex: 0 0 6px;
   width: 6px;
   height: 100%;
   cursor: col-resize;

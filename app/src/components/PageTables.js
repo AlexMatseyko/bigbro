@@ -22,6 +22,7 @@ function PageTables() {
   const [editingNameValue, setEditingNameValue] = useState('');
   const [openDropdownTableId, setOpenDropdownTableId] = useState(null);
   const [newlyCreatedTableId, setNewlyCreatedTableId] = useState(null);
+  const [pendingCreateMeta, setPendingCreateMeta] = useState(null);
 
   const loadTables = useCallback(async () => {
     setLoading(true);
@@ -46,9 +47,16 @@ function PageTables() {
     window.localStorage.setItem('team-tracker-open-table-id', openTableId || '');
   }, [openTableId]);
 
-  const handleCreateEmpty = async () => {
+  const applyMeta = (table, meta) => ({
+    ...table,
+    name: (meta && meta.name) ? meta.name : (table.name || 'Новая таблица'),
+    methodist: meta && meta.methodist !== undefined ? meta.methodist : table.methodist,
+    theme: meta && meta.theme !== undefined ? meta.theme : table.theme
+  });
+
+  const handleCreateEmpty = async (meta) => {
     setCreateModalOpen(false);
-    const t = createEmptyTable();
+    const t = applyMeta(createEmptyTable(), meta || {});
     try {
       const created = await createTable(t);
       setTables((prev) => [created, ...prev]);
@@ -62,7 +70,9 @@ function PageTables() {
 
   const handleCreateTemplate = async (taskCount) => {
     setTemplateModalOpen(false);
-    const t = createTemplateTable(taskCount);
+    const meta = pendingCreateMeta || {};
+    setPendingCreateMeta(null);
+    const t = applyMeta(createTemplateTable(taskCount), meta);
     try {
       const created = await createTable(t);
       setTables((prev) => [created, ...prev]);
@@ -76,7 +86,9 @@ function PageTables() {
 
   const handleCreateTemplateFromHeadings = async (headings) => {
     setTemplateModalOpen(false);
-    const t = createTemplateTableFromHeadings(headings);
+    const meta = pendingCreateMeta || {};
+    setPendingCreateMeta(null);
+    const t = applyMeta(createTemplateTableFromHeadings(headings), meta);
     try {
       const created = await createTable(t);
       setTables((prev) => [created, ...prev]);
@@ -86,6 +98,12 @@ function PageTables() {
       console.error(err);
       window.alert(err.message || 'Не удалось создать таблицу.');
     }
+  };
+
+  const handleOpenTemplateModal = (meta) => {
+    setCreateModalOpen(false);
+    setPendingCreateMeta(meta || {});
+    setTemplateModalOpen(true);
   };
 
   const handleOpenTable = (id) => setOpenTableId(id);
@@ -186,37 +204,39 @@ function PageTables() {
               style={{ '--table-theme-color': THEMES.find((x) => x.id === (t.theme ?? 1))?.color || THEMES[0].color }}
             >
               <div className="tables-list-main">
-                <button
-                  type="button"
-                  className="tables-list-open"
-                  onClick={() => handleOpenTable(t.id)}
-                >
-                  Открыть
-                </button>
                 <div className="tables-list-name-block">
-                  {editingNameId === t.id ? (
-                    <input
-                      type="text"
-                      className="tables-list-name-input"
-                      value={editingNameValue}
-                      onChange={(e) => setEditingNameValue(e.target.value)}
-                      onBlur={() => commitEditName(t.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitEditName(t.id);
-                        if (e.key === 'Escape') setEditingNameId(null);
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                      autoFocus
-                    />
-                  ) : (
+                  <div className="tables-list-name-row">
                     <button
                       type="button"
-                      className="tables-list-name-btn"
-                      onClick={(e) => startEditName(e, t)}
+                      className="tables-list-open"
+                      onClick={() => handleOpenTable(t.id)}
                     >
-                      {t.name || 'Без названия'}
+                      Открыть
                     </button>
-                  )}
+                    {editingNameId === t.id ? (
+                      <input
+                        type="text"
+                        className="tables-list-name-input"
+                        value={editingNameValue}
+                        onChange={(e) => setEditingNameValue(e.target.value)}
+                        onBlur={() => commitEditName(t.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') commitEditName(t.id);
+                          if (e.key === 'Escape') setEditingNameId(null);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className="tables-list-name-btn"
+                        onClick={(e) => startEditName(e, t)}
+                      >
+                        {t.name || 'Без названия'}
+                      </button>
+                    )}
+                  </div>
                   <span className="tables-list-meta">
                     {t.createdAt ? new Date(t.createdAt).toLocaleDateString('ru-RU') : ''}
                   </span>
@@ -254,10 +274,7 @@ function PageTables() {
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onEmpty={handleCreateEmpty}
-        onTemplate={() => {
-          setCreateModalOpen(false);
-          setTemplateModalOpen(true);
-        }}
+        onTemplate={handleOpenTemplateModal}
       />
 
       <TemplateTasksModal
