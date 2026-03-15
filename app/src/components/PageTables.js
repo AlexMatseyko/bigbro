@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   createEmptyTable,
   createTemplateTable,
@@ -6,6 +6,7 @@ import {
 } from '../utils/tableStorage';
 import { columnLetter } from '../utils/tableStorage';
 import { fetchTables, createTable, updateTable, deleteTable } from '../api/tableApi';
+import { API_BASE } from '../config';
 import CreateTableModal from './CreateTableModal';
 import TemplateTasksModal from './TemplateTasksModal';
 import SheetView from './SheetView';
@@ -51,6 +52,7 @@ function freeTasksColorClass(total, free) {
 /** Страница «Таблицы»: список таблиц с API (все пользователи видят все таблицы). */
 function PageTables() {
   const [tables, setTables] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
@@ -60,6 +62,13 @@ function PageTables() {
   const [openDropdownTableId, setOpenDropdownTableId] = useState(null);
   const [newlyCreatedTableId, setNewlyCreatedTableId] = useState(null);
   const [pendingCreateMeta, setPendingCreateMeta] = useState(null);
+
+  const [filterName, setFilterName] = useState('');
+  const [filterMethodistId, setFilterMethodistId] = useState('');
+  const [filterThemeId, setFilterThemeId] = useState('');
+  const [filterDateFrom, setFilterDateFrom] = useState('');
+  const [filterDateTo, setFilterDateTo] = useState('');
+  const [filterFreeMin, setFilterFreeMin] = useState('');
 
   const loadTables = useCallback(async () => {
     setLoading(true);
@@ -81,8 +90,57 @@ function PageTables() {
   }, [loadTables]);
 
   useEffect(() => {
+    const token = window.localStorage.getItem('token');
+    if (!token) return;
+    fetch(`${API_BASE}/auth/users`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setUsers)
+      .catch(() => setUsers([]));
+  }, []);
+
+  useEffect(() => {
     window.localStorage.setItem('team-tracker-open-table-id', openTableId || '');
   }, [openTableId]);
+
+  const filteredTables = useMemo(() => {
+    return tables.filter((t) => {
+      const name = (t.name || '').toLowerCase();
+      const nameQuery = (filterName || '').trim().toLowerCase();
+      if (nameQuery && !name.includes(nameQuery)) return false;
+
+      if (filterMethodistId) {
+        const mid = t.methodist?.id ?? t.methodist;
+        if (String(mid) !== String(filterMethodistId)) return false;
+      }
+
+      if (filterThemeId) {
+        const tid = t.theme != null ? t.theme : null;
+        if (String(tid) !== String(filterThemeId)) return false;
+      }
+
+      if (filterDateFrom || filterDateTo) {
+        const created = t.createdAt ? new Date(t.createdAt).getTime() : 0;
+        if (filterDateFrom) {
+          const from = new Date(filterDateFrom);
+          from.setHours(0, 0, 0, 0);
+          if (created < from.getTime()) return false;
+        }
+        if (filterDateTo) {
+          const to = new Date(filterDateTo);
+          to.setHours(23, 59, 59, 999);
+          if (created > to.getTime()) return false;
+        }
+      }
+
+      const freeNum = Number(filterFreeMin);
+      if (!Number.isNaN(freeNum) && freeNum > 0) {
+        const { free } = countTableTasks(t);
+        if (free < freeNum) return false;
+      }
+
+      return true;
+    });
+  }, [tables, filterName, filterMethodistId, filterThemeId, filterDateFrom, filterDateTo, filterFreeMin]);
 
   const applyMeta = (table, meta) => ({
     ...table,
@@ -210,6 +268,16 @@ function PageTables() {
     );
   }
 
+  const hasActiveFilters = !!(filterName.trim() || filterMethodistId || filterThemeId || filterDateFrom || filterDateTo || (filterFreeMin !== '' && Number(filterFreeMin) > 0));
+  const clearFilters = () => {
+    setFilterName('');
+    setFilterMethodistId('');
+    setFilterThemeId('');
+    setFilterDateFrom('');
+    setFilterDateTo('');
+    setFilterFreeMin('');
+  };
+
   return (
     <section className="tables-page">
       <div className="tables-page-header">
@@ -223,6 +291,87 @@ function PageTables() {
         </button>
       </div>
 
+      {!loading && tables.length > 0 && (
+        <div className="tables-filters card tracker-card">
+          <div className="tables-filters-row">
+            <label className="tables-filters-label">
+              Название
+              <input
+                type="text"
+                className="tables-filters-input"
+                placeholder="Поиск по названию"
+                value={filterName}
+                onChange={(e) => setFilterName(e.target.value)}
+              />
+            </label>
+            <label className="tables-filters-label">
+              Методист
+              <select
+                className="tables-filters-select"
+                value={filterMethodistId}
+                onChange={(e) => setFilterMethodistId(e.target.value)}
+              >
+                <option value="">Любой</option>
+                {users.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {[u.last_name, u.first_name].filter(Boolean).join(' ') || 'Без имени'}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="tables-filters-label">
+              Тема
+              <select
+                className="tables-filters-select"
+                value={filterThemeId}
+                onChange={(e) => setFilterThemeId(e.target.value)}
+              >
+                <option value="">Любая</option>
+                {THEMES.map((th) => (
+                  <option key={th.id} value={th.id}>
+                    {th.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="tables-filters-label">
+              Дата от
+              <input
+                type="date"
+                className="tables-filters-input tables-filters-date"
+                value={filterDateFrom}
+                onChange={(e) => setFilterDateFrom(e.target.value)}
+              />
+            </label>
+            <label className="tables-filters-label">
+              Дата до
+              <input
+                type="date"
+                className="tables-filters-input tables-filters-date"
+                value={filterDateTo}
+                onChange={(e) => setFilterDateTo(e.target.value)}
+              />
+            </label>
+            <label className="tables-filters-label">
+              Свободных задач не менее
+              <input
+                type="number"
+                className="tables-filters-input tables-filters-number"
+                min={0}
+                placeholder="0"
+                value={filterFreeMin}
+                onChange={(e) => setFilterFreeMin(e.target.value)}
+              />
+            </label>
+            {hasActiveFilters && (
+              <button type="button" className="btn btn-ghost tables-filters-clear" onClick={clearFilters}>
+                Сбросить фильтры
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="tables-empty card tracker-card">
           <p className="page-placeholder-text">Загрузка таблиц…</p>
@@ -231,9 +380,13 @@ function PageTables() {
         <div className="tables-empty card tracker-card">
           <p className="page-placeholder-text">Список таблиц пуст. Нажмите «Создать таблицу», чтобы добавить пустую или шаблонную таблицу.</p>
         </div>
+      ) : filteredTables.length === 0 ? (
+        <div className="tables-empty card tracker-card">
+          <p className="page-placeholder-text">Нет таблиц по выбранным фильтрам. Измените условия или сбросьте фильтры.</p>
+        </div>
       ) : (
         <ul className="tables-list">
-          {tables.map((t) => (
+          {filteredTables.map((t) => (
             <li
               key={t.id}
               className={`tables-list-item card tracker-card ${openDropdownTableId === t.id ? 'tables-list-item--dropdown-open' : ''}`}
