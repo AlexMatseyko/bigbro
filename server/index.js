@@ -8,6 +8,7 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const authRoutes = require('./routes/auth');
 const trackerRoutes = require('./routes/tracker');
 const tasksRoutes = require('./routes/tasks');
+const tablesRoutes = require('./routes/tables');
 const managerRoutes = require('./routes/manager');
 
 const app = express();
@@ -42,6 +43,7 @@ function authenticateToken(req, res, next) {
 app.use('/auth', authRoutes);
 app.use('/tracker', authenticateToken, trackerRoutes);
 app.use('/tasks', authenticateToken, tasksRoutes);
+app.use('/tables', authenticateToken, tablesRoutes);
 app.use('/manager', managerRoutes);
 
 // Health check

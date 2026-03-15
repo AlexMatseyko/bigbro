@@ -1,76 +1,119 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  loadTables,
-  saveTables,
   createEmptyTable,
   createTemplateTable,
   createTemplateTableFromHeadings
 } from '../utils/tableStorage';
+import { fetchTables, createTable, updateTable, deleteTable } from '../api/tableApi';
 import CreateTableModal from './CreateTableModal';
 import TemplateTasksModal from './TemplateTasksModal';
 import SheetView from './SheetView';
 import MethodistPicker from './MethodistPicker';
 import ThemePicker, { THEMES } from './ThemePicker';
 
-/** Страница «Таблицы»: список таблиц, создание (пустая / шаблонная: число или PDF), редактор. */
+/** Страница «Таблицы»: список таблиц с API (все пользователи видят все таблицы). */
 function PageTables() {
   const [tables, setTables] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [openTableId, setOpenTableId] = useState(null);
   const [editingNameId, setEditingNameId] = useState(null);
   const [editingNameValue, setEditingNameValue] = useState('');
 
+  const loadTables = useCallback(async () => {
+    setLoading(true);
+    try {
+      const list = await fetchTables();
+      setTables(Array.isArray(list) ? list : []);
+    } catch (err) {
+      console.error('Load tables error:', err);
+      setTables([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    setTables(loadTables());
-  }, []);
+    loadTables();
+  }, [loadTables]);
 
-  const persist = useCallback((nextTables) => {
-    setTables(nextTables);
-    saveTables(nextTables);
-  }, []);
-
-  const handleCreateEmpty = () => {
+  const handleCreateEmpty = async () => {
     setCreateModalOpen(false);
     const t = createEmptyTable();
-    persist([...tables, t]);
-    setOpenTableId(t.id);
+    try {
+      const created = await createTable(t);
+      setTables((prev) => [created, ...prev]);
+      setOpenTableId(created.id);
+    } catch (err) {
+      console.error(err);
+      window.alert(err.message || 'Не удалось создать таблицу.');
+    }
   };
 
-  const handleCreateTemplate = (taskCount) => {
+  const handleCreateTemplate = async (taskCount) => {
     setTemplateModalOpen(false);
     const t = createTemplateTable(taskCount);
-    persist([...tables, t]);
-    setOpenTableId(t.id);
+    try {
+      const created = await createTable(t);
+      setTables((prev) => [created, ...prev]);
+      setOpenTableId(created.id);
+    } catch (err) {
+      console.error(err);
+      window.alert(err.message || 'Не удалось создать таблицу.');
+    }
   };
 
-  const handleCreateTemplateFromHeadings = (headings) => {
+  const handleCreateTemplateFromHeadings = async (headings) => {
     setTemplateModalOpen(false);
     const t = createTemplateTableFromHeadings(headings);
-    persist([...tables, t]);
-    setOpenTableId(t.id);
+    try {
+      const created = await createTable(t);
+      setTables((prev) => [created, ...prev]);
+      setOpenTableId(created.id);
+    } catch (err) {
+      console.error(err);
+      window.alert(err.message || 'Не удалось создать таблицу.');
+    }
   };
 
   const handleOpenTable = (id) => setOpenTableId(id);
 
   const handleBackFromSheet = () => setOpenTableId(null);
 
-  const handleSaveSheet = (updatedTable) => {
-    const next = tables.map((t) => (t.id === updatedTable.id ? updatedTable : t));
-    persist(next);
+  const handleSaveSheet = async (updatedTable) => {
+    try {
+      const saved = await updateTable(updatedTable.id, updatedTable);
+      setTables((prev) => prev.map((t) => (t.id === saved.id ? saved : t)));
+    } catch (err) {
+      console.error(err);
+      window.alert(err.message || 'Не удалось сохранить таблицу.');
+    }
   };
 
-  const handleDeleteTable = (e, id) => {
+  const handleDeleteTable = async (e, id) => {
     e.stopPropagation();
-    if (!window.confirm('Удалить эту таблицу?')) return;
-    const next = tables.filter((t) => t.id !== id);
-    persist(next);
-    if (openTableId === id) setOpenTableId(null);
+    if (!window.confirm('Вы уверены, что хотите удалить таблицу?')) return;
+    try {
+      await deleteTable(id);
+      setTables((prev) => prev.filter((t) => t.id !== id));
+      if (openTableId === id) setOpenTableId(null);
+    } catch (err) {
+      console.error(err);
+      window.alert(err.message || 'Не удалось удалить таблицу.');
+    }
   };
 
-  const handleUpdateTableMeta = (id, patch) => {
-    const next = tables.map((t) => (t.id === id ? { ...t, ...patch } : t));
-    persist(next);
+  const handleUpdateTableMeta = async (id, patch) => {
+    const t = tables.find((x) => x.id === id);
+    if (!t) return;
+    const payload = { ...t, ...patch };
+    try {
+      const saved = await updateTable(id, payload);
+      setTables((prev) => prev.map((x) => (x.id === id ? saved : x)));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const startEditName = (e, t) => {
@@ -110,7 +153,11 @@ function PageTables() {
         </button>
       </div>
 
-      {tables.length === 0 ? (
+      {loading ? (
+        <div className="tables-empty card tracker-card">
+          <p className="page-placeholder-text">Загрузка таблиц…</p>
+        </div>
+      ) : tables.length === 0 ? (
         <div className="tables-empty card tracker-card">
           <p className="page-placeholder-text">Список таблиц пуст. Нажмите «Создать таблицу», чтобы добавить пустую или шаблонную таблицу.</p>
         </div>
@@ -149,7 +196,7 @@ function PageTables() {
                     </button>
                   )}
                   <span className="tables-list-meta">
-                    {new Date(t.createdAt).toLocaleDateString('ru-RU')}
+                    {t.createdAt ? new Date(t.createdAt).toLocaleDateString('ru-RU') : ''}
                   </span>
                 </div>
                 <div className="tables-list-methodist">
@@ -161,7 +208,7 @@ function PageTables() {
                 </div>
                 <div className="tables-list-theme">
                   <ThemePicker
-                    value={t.theme != null ? t.theme : 1}
+                    value={t.theme != null ? t.theme : null}
                     onChange={(theme) => handleUpdateTableMeta(t.id, { theme })}
                   />
                 </div>

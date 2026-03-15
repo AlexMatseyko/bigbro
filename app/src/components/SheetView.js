@@ -9,6 +9,8 @@ const CELL_WIDTH = 100;
 const CELL_HEIGHT = 28;
 const HEADER_HEIGHT = 32;
 const ROW_HEADER_WIDTH = 44;
+const MIN_COL_WIDTH = 40;
+const MAX_COL_WIDTH = 400;
 
 /**
  * Редактор таблицы в стиле Google Sheets. Строк: table.rowCount (по умолчанию 35), кнопка +20 строк.
@@ -17,17 +19,67 @@ const ROW_HEADER_WIDTH = 44;
 function SheetView({ table, onSave, onBack }) {
   const rowCount = Math.max(DEFAULT_ROW_COUNT, Number(table.rowCount) || DEFAULT_ROW_COUNT);
   const [cells, setCells] = useState(() => ({ ...(table.cells || {}) }));
+  const [colWidths, setColWidths] = useState(() => ({ ...(table.colWidths || {}) }));
   const [name, setName] = useState(table.name || 'Таблица');
   const [methodist, setMethodist] = useState(table.methodist || null);
-  const [theme, setTheme] = useState(table.theme != null ? table.theme : 1);
+  const [theme, setTheme] = useState(table.theme != null && table.theme !== '' ? table.theme : null);
+  const [resizingCol, setResizingCol] = useState(null);
+  const resizeStartRef = useRef({ x: 0, w: 0 });
+  const colWidthsRef = useRef(table.colWidths || {});
+  colWidthsRef.current = colWidths;
 
   useEffect(() => {
     setName(table.name || 'Таблица');
     setTitleValue(table.name || 'Таблица');
     setMethodist(table.methodist || null);
-    setTheme(table.theme != null ? table.theme : 1);
+    setTheme(table.theme != null && table.theme !== '' ? table.theme : null);
     setCells({ ...(table.cells || {}) });
+    setColWidths({ ...(table.colWidths || {}) });
   }, [table.id]);
+
+  const getColWidth = useCallback((col) => {
+    const w = colWidths[col];
+    if (w == null) return CELL_WIDTH;
+    return Math.max(MIN_COL_WIDTH, Math.min(MAX_COL_WIDTH, Number(w)));
+  }, [colWidths]);
+
+  useEffect(() => {
+    if (resizingCol == null) return;
+    const onMove = (e) => {
+      const delta = e.clientX - resizeStartRef.current.x;
+      const newW = Math.max(MIN_COL_WIDTH, Math.min(MAX_COL_WIDTH, resizeStartRef.current.w + delta));
+      setColWidths((prev) => ({ ...prev, [resizingCol]: newW }));
+    };
+    const onUp = () => {
+      if (table.id && onSave) {
+        onSave({
+          ...table,
+          name: name.trim() || 'Таблица',
+          methodist: methodist || undefined,
+          theme,
+          cells,
+          rowCount,
+          colWidths: { ...colWidthsRef.current }
+        });
+      }
+      setResizingCol(null);
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    return () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [resizingCol]);
+
   const [selected, setSelected] = useState(null);
   const [editing, setEditing] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -61,9 +113,10 @@ function SheetView({ table, onSave, onBack }) {
       methodist: methodist || undefined,
       theme,
       cells,
-      rowCount
+      rowCount,
+      colWidths
     });
-  }, [table, name, methodist, theme, cells, rowCount, onSave]);
+  }, [table, name, methodist, theme, cells, rowCount, colWidths, onSave]);
 
   useEffect(() => {
     persist();
@@ -129,10 +182,17 @@ function SheetView({ table, onSave, onBack }) {
 
   const addRows = () => {
     const next = rowCount + ROWS_ADD_STEP;
-    onSave({ ...table, rowCount: next, cells, name, methodist, theme });
+    onSave({ ...table, rowCount: next, cells, name, methodist, theme, colWidths });
   };
 
-  const themeColor = THEMES.find((t) => t.id === theme)?.color || THEMES[0].color;
+  const startResize = (e, colIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resizeStartRef.current = { x: e.clientX, w: getColWidth(colIndex) };
+    setResizingCol(colIndex);
+  };
+
+  const themeColor = theme != null ? (THEMES.find((t) => t.id === theme)?.color || THEMES[0].color) : THEMES[0].color;
 
   return (
     <div className="sheet-view" data-theme={theme} style={{ '--sheet-theme-color': themeColor }}>
@@ -176,13 +236,21 @@ function SheetView({ table, onSave, onBack }) {
         <ThemePicker value={theme} onChange={setTheme} className="sheet-toolbar-theme" />
       </div>
       <div className="sheet-wrap">
-        <div className="sheet-grid" style={{ '--cell-width': CELL_WIDTH, '--cell-height': CELL_HEIGHT }}>
+        <div className="sheet-grid" style={{ '--cell-height': CELL_HEIGHT }}>
           <div className="sheet-header-row" style={{ height: HEADER_HEIGHT }}>
             <div className="sheet-corner" style={{ width: ROW_HEADER_WIDTH, height: HEADER_HEIGHT }} />
             <div className="sheet-col-headers" style={{ height: HEADER_HEIGHT }}>
               {Array.from({ length: COLS }, (_, i) => (
-                <div key={i} className="sheet-col-header" style={{ width: CELL_WIDTH }}>
-                  {columnLetter(i)}
+                <div key={i} className="sheet-col-header-wrap" style={{ width: getColWidth(i), minWidth: MIN_COL_WIDTH }}>
+                  <div className="sheet-col-header" style={{ height: HEADER_HEIGHT }}>
+                    {columnLetter(i)}
+                  </div>
+                  <span
+                    className="sheet-col-resize"
+                    onMouseDown={(e) => startResize(e, i)}
+                    role="separator"
+                    aria-label="Изменить ширину"
+                  />
                 </div>
               ))}
             </div>
@@ -197,11 +265,12 @@ function SheetView({ table, onSave, onBack }) {
                   const isSelected = selected && selected.col === colIndex && selected.row === rowIndex;
                   const isEditing = editing && editing.col === colIndex && editing.row === rowIndex;
                   const value = getCellValue(colIndex, rowIndex);
+                  const w = getColWidth(colIndex);
                   return (
                     <div
                       key={colIndex}
                       className={`sheet-cell ${isSelected ? 'selected' : ''} ${isEditing ? 'editing' : ''}`}
-                      style={{ width: CELL_WIDTH, height: CELL_HEIGHT }}
+                      style={{ width: w, minWidth: MIN_COL_WIDTH, height: CELL_HEIGHT }}
                       onClick={() => { if (!isEditing) startEdit(colIndex, rowIndex); }}
                       onDoubleClick={() => startEdit(colIndex, rowIndex)}
                       onKeyDown={(e) => handleCellKeyDown(e, colIndex, rowIndex)}

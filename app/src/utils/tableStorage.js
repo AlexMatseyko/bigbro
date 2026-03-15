@@ -94,7 +94,8 @@ export function createEmptyTable(name = 'Новая таблица') {
     name,
     cells: {},
     createdAt: Date.now(),
-    rowCount: DEFAULT_ROW_COUNT
+    rowCount: DEFAULT_ROW_COUNT,
+    colWidths: {}
   };
 }
 
@@ -116,7 +117,8 @@ export function createTemplateTable(taskCount, name = 'Таблица по ша�
     name,
     cells,
     createdAt: Date.now(),
-    rowCount
+    rowCount,
+    colWidths: {}
   };
 }
 
@@ -139,6 +141,7 @@ export function createTemplateTableFromHeadings(headings, name = 'Таблица
     name,
     cells,
     createdAt: Date.now(),
-    rowCount
+    rowCount,
+    colWidths: {}
   };
 }

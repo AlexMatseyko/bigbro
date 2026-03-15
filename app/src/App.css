@@ -331,11 +331,12 @@ body {
 .tables-list-delete {
   flex-shrink: 0;
   font-size: calc(13px * var(--font-scale));
-  color: var(--text-muted);
+  color: var(--danger);
 }
 
 .tables-list-delete:hover {
   color: var(--danger);
+  opacity: 0.9;
 }
 
 /* Methodist picker */
@@ -401,7 +402,7 @@ body {
   min-width: 200px;
   max-height: 280px;
   overflow-y: auto;
-  z-index: 100;
+  z-index: 1100;
 }
 
 .methodist-picker-option {
@@ -429,6 +430,71 @@ body {
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.theme-picker-dropdown {
+  position: relative;
+}
+
+.theme-picker-trigger {
+  padding: 8px 14px;
+  font-size: calc(13px * var(--font-scale));
+  color: var(--text);
+  background: var(--bg-elevated-soft);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-width: 140px;
+  text-align: left;
+}
+
+.theme-picker-trigger:hover {
+  border-color: var(--accent);
+}
+
+.theme-picker-trigger-label {
+  color: var(--text-muted);
+}
+
+.theme-picker-trigger[style*="--theme-color"] .theme-picker-trigger-label {
+  color: var(--theme-color);
+}
+
+.theme-picker-dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 4px 0 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  min-width: 160px;
+  z-index: 1100;
+}
+
+.theme-picker-option {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  font-size: calc(14px * var(--font-scale));
+  color: var(--text);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.theme-picker-option:hover {
+  background: var(--dropdown-bg-hover);
+}
+
+.theme-picker-option.active {
+  color: var(--theme-color);
+  font-weight: 600;
 }
 
 .theme-picker-chip {
@@ -712,6 +778,25 @@ body {
 .sheet-col-headers {
   display: flex;
   flex-shrink: 0;
+}
+
+.sheet-col-header-wrap {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+}
+
+.sheet-col-resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+}
+
+.sheet-col-resize:hover {
+  background: rgba(56, 189, 248, 0.25);
 }
 
 .sheet-row-wrap {
