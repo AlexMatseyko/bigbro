@@ -277,6 +277,8 @@ function PageTables() {
                   <span className="tables-list-meta">
                     {t.createdAt ? new Date(t.createdAt).toLocaleDateString('ru-RU') : ''}
                   </span>
+                </div>
+                <div className="tables-list-free-block">
                   {(() => {
                     const { total, free } = countTableTasks(t);
                     return (

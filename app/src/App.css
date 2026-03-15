@@ -259,10 +259,17 @@ body {
 
 .tables-list-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 200px 140px auto;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, auto) 200px 140px auto;
   align-items: center;
   gap: 16px;
   width: 100%;
+  min-width: 0;
+}
+
+.tables-list-free-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
 }
 
