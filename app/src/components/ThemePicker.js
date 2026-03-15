@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const THEMES = [
-  { id: 1, label: 'Тема 1', color: '#38bdf8' },
-  { id: 2, label: 'Тема 2', color: '#4ade80' },
-  { id: 3, label: 'Тема 3', color: '#facc15' },
-  { id: 4, label: 'Тема 4', color: '#f97316' },
-  { id: 5, label: 'Тема 5', color: '#a78bfa' }
+  { id: 1, label: 'Планиметрия', color: '#38bdf8' },
+  { id: 2, label: 'Стереометрия', color: '#4ade80' },
+  { id: 3, label: 'Параметр', color: '#facc15' },
+  { id: 4, label: 'Неравенства', color: '#f97316' },
+  { id: 5, label: 'Теория чисел', color: '#a78bfa' },
+  { id: 6, label: 'Первая часть', color: '#f43f5e' },
+  { id: 7, label: 'Уравнения', color: '#06b6d4' },
+  { id: 8, label: 'Русский', color: '#ec4899' },
+  { id: 9, label: 'Физика', color: '#14b8a6' },
+  { id: 10, label: 'Химия', color: '#eab308' },
+  { id: 11, label: 'Ол.Мат.', color: '#84cc16' }
 ];
 
 const PLACEHOLDER = 'Выбрать тему';
