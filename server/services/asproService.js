@@ -175,6 +175,10 @@ const ASPRO_STAGES_LIST_PATH = '/module/task/stages/list';
 /** Fallback: agile issues (если task/tasks/list отдаёт только шаблоны). */
 const ASPRO_AGILE_ISSUES_LIST_PATH = '/module/agile/issues/list';
 
+/** Максимум страниц при выгрузке «всех задач» (защита от бесконечного цикла). */
+const ALL_TASKS_MAX_PAGES = 200;
+const ALL_TASKS_PAGE_SIZE = 100;
+
 function getTasksEndpoint() {
   if (_tasksEndpoint) return _tasksEndpoint;
   _tasksEndpoint = `${ASPRO_API_BASE}${ASPRO_TASKS_LIST_PATH}`;
@@ -326,6 +330,39 @@ async function getAsproTasksListForUser(asproUserId) {
   }
 
   return { items: allItems, fromAgile: false };
+}
+
+/**
+ * Вытягивает из Aspro ВСЕ задачи портала (без фильтра по пользователю).
+ * Пагинация по API: limit + page до исчерпания или лимита страниц.
+ * Сопоставление «чей исполнитель» и фильтрация делаются на нашем сервисе.
+ * @returns {Promise<{ items: Array, total: number }>}
+ */
+async function getAsproAllTasks() {
+  const baseUrl = getTasksEndpoint();
+  const allItems = [];
+  let total = 0;
+
+  for (let page = 1; page <= ALL_TASKS_MAX_PAGES; page++) {
+    const query = {
+      limit: String(ALL_TASKS_PAGE_SIZE),
+      page: String(page),
+      'filter[type]': '!30'
+    };
+    const { url: fullUrl, headers } = await buildAsproRequestOptions(baseUrl, query);
+    const res = await fetch(fullUrl, { method: 'GET', headers });
+    const data = await res.json().catch(() => ({}));
+    const items = data.response?.items ?? data.items ?? (Array.isArray(data) ? data : []);
+    if (!Array.isArray(items) || items.length === 0) break;
+
+    const pageTotal = data.response?.total ?? data.total ?? 0;
+    if (pageTotal > 0) total = pageTotal;
+    allItems.push(...items);
+    if (total > 0 && allItems.length >= total) break;
+    if (items.length < ALL_TASKS_PAGE_SIZE) break;
+  }
+
+  return { items: allItems, total: total || allItems.length };
 }
 
 /**
@@ -778,6 +815,7 @@ module.exports = {
   getAsproTaskById,
   getAsproStagesList,
   getAsproTasksListForUser,
+  getAsproAllTasks,
   updateAsproTask,
   getAsproKanbanData,
   getAsproTaskListFromView,

@@ -7,7 +7,7 @@ const {
   buildAsproRequestOptions,
   getAsproTaskById,
   getAsproStagesList,
-  getAsproTasksListForUser,
+  getAsproAllTasks,
   updateAsproTask,
   getAsproKanbanData,
   getAsproTaskListFromView,
@@ -196,31 +196,13 @@ router.get('/', async (req, res) => {
         .json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
 
-    // Собираем задачи из всех источников и объединяем по id. Источник «все задачи» — отчёт report/users (вкладка в портале).
-    const [
-      { items: apiItems },
-      { tasks: allListTasks },
-      { tasks: listTasks },
-      { tasks: kanbanTasks },
-      { tasks: reportUsersTasks }
-    ] = await Promise.all([
-      getAsproTasksListForUser(userAsproId),
-      getAsproTaskListAll(),
-      getAsproTaskListFromView(),
-      getAsproKanbanData(),
-      getAsproTaskListFromReportUsers()
-    ]);
+    // Вытягиваем из Aspro все задачи портала (без фильтра по пользователю), сопоставление — на нашем сервисе.
+    const { items: allTasks } = await getAsproAllTasks();
     const byId = new Map();
-    for (const t of [
-      ...(Array.isArray(apiItems) ? apiItems : []),
-      ...(Array.isArray(allListTasks) ? allListTasks : []),
-      ...(Array.isArray(listTasks) ? listTasks : []),
-      ...(Array.isArray(kanbanTasks) ? kanbanTasks : []),
-      ...(Array.isArray(reportUsersTasks) ? reportUsersTasks : [])
-    ]) {
+    for (const t of Array.isArray(allTasks) ? allTasks : []) {
       if (t && t.id != null) byId.set(String(t.id), t);
     }
-    // Догрузка по ID: если API Aspro не отдаёт задачу в списке (лимит/сортировка), можно передать includeTaskIds=5571,5572
+    // Догрузка по ID: если задача не попала в выгрузку, можно передать includeTaskIds=5571,5572
     const includeIds = req.query.includeTaskIds ? String(req.query.includeTaskIds).split(',').map((s) => s.trim()).filter(Boolean) : [];
     for (const tid of includeIds) {
       if (byId.has(tid)) continue;
@@ -232,7 +214,7 @@ router.get('/', async (req, res) => {
     }
     let tasks = Array.from(byId.values());
 
-    // Только не в архиве, не завершённые, не шаблоны, и где пользователь — исполнитель.
+    // Фильтрация на нашем сервисе: не в архиве, не завершённые, не шаблоны, пользователь — исполнитель.
     tasks = tasks.filter(
       (t) =>
         isActiveTask(t) &&
@@ -282,32 +264,10 @@ router.get('/raw', async (req, res) => {
     if (!userAsproId) {
       return res.status(400).json({ message: 'Не указан Aspro Cloud ID для пользователя.' });
     }
-    // Те же источники и объединение по id, что и в GET /tasks (включая report/users)
-    const [
-      { items: apiItems },
-      { tasks: allTasks },
-      { tasks: viewTasks },
-      { tasks: kanbanTasks },
-      { tasks: reportUsersTasks }
-    ] = await Promise.all([
-      getAsproTasksListForUser(userAsproId),
-      getAsproTaskListAll(),
-      getAsproTaskListFromView(),
-      getAsproKanbanData(),
-      getAsproTaskListFromReportUsers()
-    ]);
-    const byId = new Map();
-    for (const t of [
-      ...(Array.isArray(apiItems) ? apiItems : []),
-      ...(Array.isArray(allTasks) ? allTasks : []),
-      ...(Array.isArray(viewTasks) ? viewTasks : []),
-      ...(Array.isArray(kanbanTasks) ? kanbanTasks : []),
-      ...(Array.isArray(reportUsersTasks) ? reportUsersTasks : [])
-    ]) {
-      if (t && t.id != null) byId.set(String(t.id), t);
-    }
-    const rawTasks = Array.from(byId.values());
-    const source = 'merged: task/tasks/list + tasks_list/all + list2_list + report/users';
+    // Один источник: все задачи из Aspro, фильтрация на нашем сервисе
+    const { items: allTasks } = await getAsproAllTasks();
+    const rawTasks = Array.isArray(allTasks) ? allTasks : [];
+    const source = 'getAsproAllTasks (все задачи портала, фильтрация на сервере)';
 
     const withReason = rawTasks.map((t) => {
       const active = isActiveTask(t);
@@ -474,47 +434,17 @@ router.get('/debug-source', async (req, res) => {
     const taskById = await getAsproTaskById(taskId);
     const taskExistsInAspro = !!(taskById && (taskById.id != null || taskById.ID != null));
 
-    const [
-      { items: apiItems },
-      { tasks: allListTasks },
-      { tasks: viewTasks },
-      { tasks: kanbanTasks },
-      { tasks: reportUsersTasks }
-    ] = await Promise.all([
-      getAsproTasksListForUser(userAsproId || ''),
-      getAsproTaskListAll(),
-      getAsproTaskListFromView(),
-      getAsproKanbanData(),
-      getAsproTaskListFromReportUsers()
-    ]);
-
-    const hasId = (list, id) => {
-      if (!Array.isArray(list)) return false;
-      const sid = String(id);
-      return list.some((t) => t && (String(t.id) === sid || String(t.ID) === sid));
-    };
-
-    const inApi = hasId(apiItems, taskId);
-    const inAll = hasId(allListTasks, taskId);
-    const inView = hasId(viewTasks, taskId);
-    const inKanban = hasId(kanbanTasks, taskId);
-    const inReportUsers = hasId(reportUsersTasks, taskId);
-
-    const inMerged = inApi || inAll || inView || inKanban || inReportUsers;
+    const { items: allTasks } = await getAsproAllTasks();
+    const list = Array.isArray(allTasks) ? allTasks : [];
+    const inAllTasks = list.some((t) => t && (String(t.id) === taskId || String(t.ID) === taskId));
 
     let conclusion = '';
     if (!taskExistsInAspro) {
       conclusion = 'Задача не найдена в Aspro по GET /module/task/tasks/get/{id}. Проверьте ID или права доступа.';
-    } else if (!inMerged) {
-      conclusion = 'Задача есть в Aspro, но ни один из источников (API list, tasks_list/all, list2_list, Kanban, report/users) её не вернул.';
+    } else if (!inAllTasks) {
+      conclusion = 'Задача есть в Aspro, но не попала в выгрузку getAsproAllTasks (лимит страниц или фильтр API).';
     } else {
-      const sources = [];
-      if (inApi) sources.push('API task/tasks/list');
-      if (inAll) sources.push('REST tasks_list/all');
-      if (inView) sources.push('REST list2_list');
-      if (inKanban) sources.push('Kanban');
-      if (inReportUsers) sources.push('report/users (все задачи)');
-      conclusion = 'Задача приходит из: ' + sources.join(', ');
+      conclusion = 'Задача есть в выгрузке всех задач (getAsproAllTasks). Сопоставление с пользователем делается на нашем сервисе.';
     }
 
     return res.json({
@@ -533,19 +463,8 @@ router.get('/debug-source', async (req, res) => {
             workflow_stage_id: taskById.workflow_stage_id ?? taskById.stage_id
           }
         : null,
-      in_api_list: inApi,
-      in_all_list: inAll,
-      in_view_list: inView,
-      in_kanban: inKanban,
-      in_report_users: inReportUsers,
-      in_merged_result: inMerged,
-      counts: {
-        api: Array.isArray(apiItems) ? apiItems.length : 0,
-        all: Array.isArray(allListTasks) ? allListTasks.length : 0,
-        view: Array.isArray(viewTasks) ? viewTasks.length : 0,
-        kanban: Array.isArray(kanbanTasks) ? kanbanTasks.length : 0,
-        report_users: Array.isArray(reportUsersTasks) ? reportUsersTasks.length : 0
-      },
+      in_all_tasks: inAllTasks,
+      all_tasks_count: list.length,
       conclusion
     });
   } catch (err) {
@@ -577,6 +496,32 @@ router.get('/raw-from-report-users', async (req, res) => {
     });
   } catch (err) {
     console.error('Error in GET /tasks/raw-from-report-users:', err);
+    return res.status(500).json({ error: ASPRO_ERROR_MSG });
+  }
+});
+
+/**
+ * GET /tasks/raw-all-tasks — отладка: что вернул getAsproAllTasks() (все задачи портала без фильтра по пользователю).
+ */
+router.get('/raw-all-tasks', async (req, res) => {
+  try {
+    const { items, total } = await getAsproAllTasks();
+    const list = Array.isArray(items) ? items : [];
+    return res.json({
+      debug: true,
+      source: 'getAsproAllTasks (API task/tasks/list без фильтра по пользователю)',
+      count: list.length,
+      total,
+      first_20: list.slice(0, 20).map((t) => ({
+        id: t.id,
+        name: t.name,
+        responsible_id: t.responsible_id ?? t.assignee_id ?? t.executor_id,
+        workflow_stage_id: t.workflow_stage_id ?? t.stage_id,
+        status: t.status
+      }))
+    });
+  } catch (err) {
+    console.error('Error in GET /tasks/raw-all-tasks:', err);
     return res.status(500).json({ error: ASPRO_ERROR_MSG });
   }
 });
