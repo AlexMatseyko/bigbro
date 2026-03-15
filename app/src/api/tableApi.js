@@ -83,3 +83,20 @@ export async function deleteTable(id) {
     throw new Error(data.message || 'Ошибка удаления таблицы');
   }
 }
+
+/**
+ * Взять задачу: создать задачу в Aspro, записать исполнителя в ячейку F.
+ * @param {string} tableId
+ * @param {number} rowIndex — индекс строки (0-based)
+ * @returns {Promise<{ success: boolean, taskName: string, table: Object }>}
+ */
+export async function takeTableTask(tableId, rowIndex) {
+  const res = await fetch(`${API_BASE}/tables/${encodeURIComponent(tableId)}/take-task`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ rowIndex })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || 'Не удалось взять задачу.');
+  return data;
+}

@@ -204,6 +204,18 @@ function getTaskUpdateUrl(id) {
   return `${ASPRO_API_BASE}/module/task/tasks/update/${encodeURIComponent(String(id))}`;
 }
 
+/** URL создания задачи: POST /module/task/tasks/add (body: application/x-www-form-urlencoded). */
+const ASPRO_TASKS_ADD_PATH = '/module/task/tasks/add';
+function getTaskAddUrl() {
+  return `${ASPRO_API_BASE}${ASPRO_TASKS_ADD_PATH}`;
+}
+
+/** Список проектов: GET /module/task/projects/list (если API поддерживает). */
+const ASPRO_PROJECTS_LIST_PATH = process.env.ASPRO_PROJECTS_LIST_PATH || '/module/task/projects/list';
+function getProjectsListUrl() {
+  return `${ASPRO_API_BASE}${ASPRO_PROJECTS_LIST_PATH}`;
+}
+
 /** Путь к странице задачи в веб-интерфейсе портала (можно задать в .env: ASPRO_TASK_VIEW_PATH). Формат: .../view/task/328 */
 const ASPRO_TASK_VIEW_PATH = process.env.ASPRO_TASK_VIEW_PATH || '/_module/task/view/task/';
 
@@ -801,6 +813,82 @@ async function getAsproUsers(query = {}) {
   return items;
 }
 
+/**
+ * Список проектов Aspro (если API поддерживает).
+ * @returns {Promise<Array<{ id: string|number, name: string }>>}
+ */
+async function getAsproProjectsList() {
+  const url = getProjectsListUrl();
+  const { url: fullUrl, headers } = await buildAsproRequestOptions(url, { limit: '500', page: '1' });
+  try {
+    const res = await fetch(fullUrl, { method: 'GET', headers });
+    if (!res.ok) return [];
+    const data = await res.json().catch(() => ({}));
+    const items = data.response?.items ?? data.items ?? (Array.isArray(data) ? data : []);
+    return (items || []).map((p) => ({
+      id: p.id ?? p.ID,
+      name: String(p.name ?? p.NAME ?? p.title ?? '').trim()
+    })).filter((p) => p.id != null);
+  } catch (err) {
+    console.warn('Aspro getAsproProjectsList error:', err.message);
+    return [];
+  }
+}
+
+/**
+ * Найти или создать проект по имени. Сначала ищет в списке по точному совпадению имени, иначе по подстроке.
+ * Если не найден — пробует создать (если API поддерживает POST add).
+ * @param {string} projectName
+ * @returns {Promise<string|number|null>} id проекта или null
+ */
+async function findOrCreateAsproProject(projectName) {
+  const name = String(projectName || '').trim();
+  if (!name) return null;
+  const list = await getAsproProjectsList();
+  const exact = list.find((p) => p.name === name);
+  if (exact && exact.id != null) return exact.id;
+  const bySubstring = list.find((p) => p.name && p.name.includes(name));
+  if (bySubstring && bySubstring.id != null) return bySubstring.id;
+  return null;
+}
+
+/**
+ * Создать задачу в Aspro.
+ * @param {string} title — название задачи
+ * @param {Object} opts — owner_id (постановщик, aspro_id), responsible_id (исполнитель, aspro_id), project_id (опционально)
+ * @returns {Promise<{ ok: boolean, taskId?: string|number, error?: string }>}
+ */
+async function createAsproTask(title, opts = {}) {
+  const name = String(title || '').trim();
+  if (!name) return { ok: false, error: 'Название задачи пусто' };
+  const addUrl = getTaskAddUrl();
+  const { url: fullUrl, headers } = await buildAsproRequestOptions(addUrl);
+  const body = new URLSearchParams();
+  body.set('name', name);
+  if (opts.owner_id != null && opts.owner_id !== '') body.set('owner_id', String(opts.owner_id));
+  if (opts.responsible_id != null && opts.responsible_id !== '') body.set('responsible_id', String(opts.responsible_id));
+  if (opts.project_id != null && opts.project_id !== '') body.set('project_id', String(opts.project_id));
+  try {
+    const res = await fetch(fullUrl, {
+      method: 'POST',
+      headers: { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString()
+    });
+    const data = await res.json().catch(() => ({}));
+    const response = data.response ?? data;
+    const taskId = response?.id ?? response?.ID ?? data.id ?? data.ID;
+    if (res.ok && taskId != null) {
+      return { ok: true, taskId };
+    }
+    const errMsg = response?.message ?? data.message ?? data.error?.message ?? (res.status ? `HTTP ${res.status}` : 'Ошибка API');
+    console.warn('Aspro createAsproTask:', errMsg, data);
+    return { ok: false, error: errMsg };
+  } catch (err) {
+    console.error('Aspro createAsproTask error:', err.message);
+    return { ok: false, error: err.message };
+  }
+}
+
 module.exports = {
   getAsproUserList,
   getAsproUsers,
@@ -822,6 +910,9 @@ module.exports = {
   getAsproTaskListAll,
   getAsproTaskListFromReportUsers,
   getAsproTaskPortalUrl,
+  getAsproProjectsList,
+  findOrCreateAsproProject,
+  createAsproTask,
   ASPRO_USER_LIST_URL,
   ASPRO_USERS_LIST_URL: ASPRO_USER_LIST_URL
 };

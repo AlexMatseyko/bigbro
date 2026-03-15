@@ -1,7 +1,29 @@
 const express = require('express');
 const db = require('../db');
+const { createAsproTask, findOrCreateAsproProject } = require('../services/asproService');
 
 const router = express.Router();
+
+/** aspro_id текущего пользователя и ФИО из БД */
+async function getCurrentUserAsproAndName(userId) {
+  if (!userId) return { asproId: null, fullName: '' };
+  const r = await db.query(
+    'SELECT aspro_id, first_name, last_name FROM users WHERE id = $1',
+    [userId]
+  );
+  const row = r.rows[0];
+  if (!row) return { asproId: null, fullName: '' };
+  const fullName = `${(row.last_name || '').trim()} ${(row.first_name || '').trim()}`.trim() || 'Исполнитель';
+  return { asproId: row.aspro_id != null && row.aspro_id !== '' ? row.aspro_id : null, fullName };
+}
+
+/** aspro_id пользователя по нашему id (для методиста) */
+async function getAsproIdByUserId(ourUserId) {
+  if (!ourUserId) return null;
+  const r = await db.query('SELECT aspro_id FROM users WHERE id = $1', [ourUserId]);
+  const row = r.rows[0];
+  return row && row.aspro_id != null && row.aspro_id !== '' ? row.aspro_id : null;
+}
 
 /**
  * GET /tables — список всех таблиц (для всех пользователей).
@@ -136,6 +158,91 @@ router.delete('/:id', async (req, res) => {
   } catch (err) {
     console.error('DELETE /tables/:id error:', err);
     return res.status(500).json({ message: 'Ошибка удаления таблицы.' });
+  }
+});
+
+/**
+ * POST /tables/:id/take-task — взять задачу: создать задачу в Aspro (исполнитель = текущий пользователь, постановщик = методист таблицы, проект = название таблицы), записать исполнителя в ячейку F строки.
+ * Body: { rowIndex: number } (индекс строки 0-based).
+ */
+router.post('/:id/take-task', async (req, res) => {
+  try {
+    const tableId = req.params.id;
+    const { rowIndex } = req.body;
+    const userId = req.user && req.user.userId;
+    if (userId == null) return res.status(401).json({ message: 'Необходима авторизация.' });
+
+    const rowNum = typeof rowIndex === 'number' ? rowIndex : parseInt(rowIndex, 10);
+    if (isNaN(rowNum) || rowNum < 0) {
+      return res.status(400).json({ message: 'Укажите rowIndex (номер строки).' });
+    }
+
+    const tableResult = await db.query(
+      'SELECT id, name, cells, row_count AS "rowCount", methodist FROM tables WHERE id = $1',
+      [tableId]
+    );
+    if (!tableResult.rows.length) return res.status(404).json({ message: 'Таблица не найдена.' });
+    const tableRow = tableResult.rows[0];
+    const cells = tableRow.cells || {};
+    const taskName = cells[`A${rowNum + 1}`] || `Задача ${rowNum + 1}`;
+
+    const { asproId: executorAsproId, fullName: executorFullName } = await getCurrentUserAsproAndName(userId);
+    if (!executorAsproId) {
+      return res.status(400).json({
+        message: 'У вашего пользователя не привязан Aspro Cloud ID. Используйте «Синхронизация с Aspro» в профиле.'
+      });
+    }
+
+    const methodist = tableRow.methodist;
+    let ownerAsproId = null;
+    if (methodist && methodist.id) {
+      ownerAsproId = await getAsproIdByUserId(methodist.id);
+    }
+
+    const projectName = tableRow.name || 'Таблица';
+    const projectId = await findOrCreateAsproProject(projectName);
+
+    const createPayload = {
+      owner_id: ownerAsproId || undefined,
+      responsible_id: executorAsproId,
+      project_id: projectId || undefined
+    };
+    const created = await createAsproTask(taskName, createPayload);
+    if (!created.ok) {
+      return res.status(502).json({
+        message: created.error || 'Не удалось создать задачу в Aspro Cloud.'
+      });
+    }
+
+    cells[`F${rowNum + 1}`] = executorFullName;
+    await db.query(
+      'UPDATE tables SET cells = $2 WHERE id = $1',
+      [tableId, JSON.stringify(cells)]
+    );
+
+    const updated = await db.query(
+      'SELECT id, name, cells, row_count AS "rowCount", methodist, theme, col_widths AS "colWidths", created_at AS "createdAt" FROM tables WHERE id = $1',
+      [tableId]
+    );
+    const t = updated.rows[0];
+    return res.json({
+      success: true,
+      taskName,
+      asproTaskId: created.taskId,
+      table: {
+        id: t.id,
+        name: t.name,
+        cells: t.cells || {},
+        rowCount: t.rowCount != null ? t.rowCount : 35,
+        methodist: t.methodist || null,
+        theme: t.theme != null ? t.theme : null,
+        colWidths: t.colWidths || {},
+        createdAt: t.createdAt ? new Date(t.createdAt).getTime() : Date.now()
+      }
+    });
+  } catch (err) {
+    console.error('POST /tables/:id/take-task error:', err);
+    return res.status(500).json({ message: 'Ошибка при взятии задачи.' });
   }
 });
 

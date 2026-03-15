@@ -907,6 +907,140 @@ body {
   padding: 0;
 }
 
+.sheet-cell--col-a {
+  position: relative;
+}
+
+.sheet-cell-take-task {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 4px 10px;
+  font-size: calc(11px * var(--font-scale));
+  font-weight: 500;
+  color: var(--success);
+  background: rgba(74, 222, 128, 0.2);
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  white-space: nowrap;
+  z-index: 2;
+}
+.sheet-cell-take-task:hover:not(:disabled) {
+  background: rgba(74, 222, 128, 0.3);
+}
+.sheet-cell-take-task:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.sheet-executor-cell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+.sheet-executor-trigger {
+  width: 100%;
+  height: 100%;
+  padding: 0 8px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sheet-executor-trigger:hover {
+  background: rgba(56, 189, 248, 0.08);
+}
+.sheet-executor-trigger-label {
+  color: var(--text-muted);
+}
+.sheet-executor-cell .sheet-executor-trigger:not([data-empty]) .sheet-executor-trigger-label {
+  color: var(--text);
+}
+.sheet-executor-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin: 2px 0 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  min-width: 160px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1200;
+}
+.sheet-executor-option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: calc(13px * var(--font-scale));
+  color: var(--text);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.sheet-executor-option:hover {
+  background: var(--dropdown-bg-hover);
+}
+
+.sheet-success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 20px;
+}
+.sheet-success-popup {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  text-align: center;
+  max-width: 360px;
+  box-shadow: var(--shadow-soft);
+}
+.sheet-success-check {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.25);
+  color: var(--success);
+  font-size: 28px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.sheet-success-title {
+  margin: 0 0 8px;
+  font-size: calc(18px * var(--font-scale));
+  font-weight: 600;
+  color: var(--text);
+}
+.sheet-success-text {
+  margin: 0;
+  font-size: calc(14px * var(--font-scale));
+  color: var(--text-muted);
+}
+
 .sheet-cell-value {
   overflow: hidden;
   text-overflow: ellipsis;

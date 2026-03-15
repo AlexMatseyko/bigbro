@@ -3,8 +3,72 @@ import { columnLetter, DEFAULT_ROW_COUNT, ROWS_ADD_STEP } from '../utils/tableSt
 import MethodistPicker from './MethodistPicker';
 import ThemePicker from './ThemePicker';
 import { THEMES } from './ThemePicker';
+import { takeTableTask } from '../api/tableApi';
+import { API_BASE } from '../config';
 
 const COLS = 26;
+const COL_A = 0;
+const COL_F = 5;
+const COLUMN_LABELS = { [COL_A]: 'Название', [COL_F]: 'Исполнитель' };
+function getColumnHeader(colIndex) {
+  return COLUMN_LABELS[colIndex] != null ? COLUMN_LABELS[colIndex] : columnLetter(colIndex);
+}
+
+/** Ячейка-выпадающий список исполнителей (Фамилия Имя) в столбце F */
+function ExecutorCell({ value, users, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const onOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    if (open) document.addEventListener('mousedown', onOutside);
+    return () => document.removeEventListener('mousedown', onOutside);
+  }, [open]);
+  const display = (value || '').trim() || 'Выбрать';
+  const isEmpty = !(value || '').trim();
+  return (
+    <div className="sheet-executor-cell" ref={ref}>
+      <button
+        type="button"
+        className="sheet-executor-trigger"
+        data-empty={isEmpty ? 'true' : undefined}
+        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className="sheet-executor-trigger-label">{display}</span>
+      </button>
+      {open && (
+        <ul className="sheet-executor-dropdown" role="listbox">
+          <li role="option">
+            <button
+              type="button"
+              className="sheet-executor-option"
+              onClick={() => { onChange(''); setOpen(false); }}
+            >
+              — Не выбран
+            </button>
+          </li>
+          {users.map((u) => {
+            const fullName = `${(u.last_name || '').trim()} ${(u.first_name || '').trim()}`.trim() || 'Без имени';
+            return (
+              <li key={u.id} role="option">
+                <button
+                  type="button"
+                  className="sheet-executor-option"
+                  onClick={() => { onChange(fullName); setOpen(false); }}
+                >
+                  {fullName}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
 const CELL_WIDTH = 100;
 const CELL_HEIGHT = 28;
 const HEADER_HEIGHT = 32;
@@ -85,8 +149,21 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
   const [editValue, setEditValue] = useState('');
   const [titleEditing, setTitleEditing] = useState(false);
   const [titleValue, setTitleValue] = useState(table.name || 'Таблица');
+  const [hoveredTaskRow, setHoveredTaskRow] = useState(null);
+  const [successPopup, setSuccessPopup] = useState({ show: false, taskName: '' });
+  const [users, setUsers] = useState([]);
+  const [takeTaskLoading, setTakeTaskLoading] = useState(false);
   const inputRef = useRef(null);
   const titleInputRef = useRef(null);
+
+  useEffect(() => {
+    const token = window.localStorage.getItem('token');
+    if (!token) return;
+    fetch(`${API_BASE}/auth/users`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setUsers)
+      .catch(() => setUsers([]));
+  }, []);
 
   const getCellId = (col, row) => `${columnLetter(col)}${row + 1}`;
 
@@ -192,6 +269,33 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
     onSave({ ...table, rowCount: next, cells, name, methodist, theme, colWidths });
   };
 
+  const handleTakeTask = useCallback(
+    async (rowIndex) => {
+      if (!table.id || !onSave || takeTaskLoading) return;
+      const taskName = getCellValue(COL_A, rowIndex) || `Задача ${rowIndex + 1}`;
+      setTakeTaskLoading(true);
+      try {
+        const data = await takeTableTask(table.id, rowIndex);
+        setCells(data.table.cells || {});
+        setSuccessPopup({ show: true, taskName: data.taskName || taskName });
+        onSave({
+          ...table,
+          name: data.table.name ?? name,
+          cells: data.table.cells || {},
+          rowCount: data.table.rowCount ?? rowCount,
+          methodist: data.table.methodist ?? methodist,
+          theme: data.table.theme ?? theme,
+          colWidths: data.table.colWidths ?? colWidths
+        });
+      } catch (err) {
+        window.alert(err.message || 'Не удалось взять задачу.');
+      } finally {
+        setTakeTaskLoading(false);
+      }
+    },
+    [table, onSave, takeTaskLoading, cells, name, rowCount, methodist, theme, colWidths, getCellValue]
+  );
+
   const startResize = (e, colIndex) => {
     e.preventDefault();
     e.stopPropagation();
@@ -250,7 +354,7 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
               {Array.from({ length: COLS }, (_, i) => (
                 <div key={i} className="sheet-col-header-wrap" style={{ width: getColWidth(i), minWidth: MIN_COL_WIDTH }}>
                   <div className="sheet-col-header" style={{ height: HEADER_HEIGHT }}>
-                    {columnLetter(i)}
+                    {getColumnHeader(i)}
                   </div>
                   <span
                     className="sheet-col-resize"
@@ -273,30 +377,63 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
                   const isEditing = editing && editing.col === colIndex && editing.row === rowIndex;
                   const value = getCellValue(colIndex, rowIndex);
                   const w = getColWidth(colIndex);
+                  const isColA = colIndex === COL_A;
+                  const isColF = colIndex === COL_F;
+                  const showTakeTask = isColA && hoveredTaskRow === rowIndex && (value || '').trim().length > 0;
+
+                  const cellContent = isEditing ? (
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      className="sheet-cell-input"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onBlur={commitEdit}
+                      onKeyDown={handleInputKeyDown}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  ) : isColF ? (
+                    <ExecutorCell
+                      value={value}
+                      users={users}
+                      onChange={(v) => setCellValue(COL_F, rowIndex, v)}
+                    />
+                  ) : (
+                    <>
+                      <span className="sheet-cell-value">{value || '\u00A0'}</span>
+                      {showTakeTask && (
+                        <button
+                          type="button"
+                          className="sheet-cell-take-task"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleTakeTask(rowIndex);
+                          }}
+                          disabled={takeTaskLoading}
+                        >
+                          Взять задачу
+                        </button>
+                      )}
+                    </>
+                  );
+
                   return (
                     <div
                       key={colIndex}
-                      className={`sheet-cell ${isSelected ? 'selected' : ''} ${isEditing ? 'editing' : ''}`}
+                      className={`sheet-cell ${isSelected ? 'selected' : ''} ${isEditing ? 'editing' : ''} ${isColA ? 'sheet-cell--col-a' : ''}`}
                       style={{ width: w, minWidth: MIN_COL_WIDTH, height: CELL_HEIGHT }}
-                      onClick={() => { if (!isEditing) startEdit(colIndex, rowIndex); }}
-                      onDoubleClick={() => startEdit(colIndex, rowIndex)}
+                      onClick={(e) => {
+                        if (e.target.closest('.sheet-cell-take-task')) return;
+                        if (!isEditing && isColF) return;
+                        if (!isEditing) startEdit(colIndex, rowIndex);
+                      }}
+                      onMouseEnter={() => isColA && setHoveredTaskRow(rowIndex)}
+                      onMouseLeave={() => isColA && setHoveredTaskRow(null)}
+                      onDoubleClick={() => !isColF && startEdit(colIndex, rowIndex)}
                       onKeyDown={(e) => handleCellKeyDown(e, colIndex, rowIndex)}
                       tabIndex={0}
                     >
-                      {isEditing ? (
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          className="sheet-cell-input"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          onBlur={commitEdit}
-                          onKeyDown={handleInputKeyDown}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <span className="sheet-cell-value">{value || '\u00A0'}</span>
-                      )}
+                      {cellContent}
                     </div>
                   );
                 })}
@@ -310,6 +447,24 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
           + Добавить 20 строк
         </button>
       </div>
+
+      {successPopup.show && (
+        <div
+          className="sheet-success-overlay"
+          onClick={() => setSuccessPopup({ show: false, taskName: '' })}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Успешно"
+        >
+          <div className="sheet-success-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-success-check">✓</div>
+            <p className="sheet-success-title">Успешно!</p>
+            <p className="sheet-success-text">
+              Вы забронировали задачу «{successPopup.taskName}».
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
