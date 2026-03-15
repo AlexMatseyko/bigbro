@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Debug task source</title>
+  <style>
+    body { font-family: sans-serif; padding: 1rem; max-width: 800px; }
+    input, button { margin: 0.25rem; padding: 0.5rem; }
+    pre { background: #f5f5f5; padding: 1rem; overflow: auto; white-space: pre-wrap; }
+    .error { color: #c00; }
+  </style>
+</head>
+<body>
+  <h1>Проверка источника задачи</h1>
+  <p>
+    <label>ID задачи: <input type="number" id="taskId" value="900" /></label>
+    <label>API (без слэша в конце): <input type="text" id="apiBase" value="http://185.76.241.217:5000" style="width:280px" /></label>
+    <button id="btn">Проверить</button>
+  </p>
+  <p>Токен берётся из localStorage ключа <code>token</code> (нужно быть залогиненным в этой вкладке на том же домене).</p>
+  <pre id="out">Нажми «Проверить».</pre>
+
+  <script>
+    document.getElementById('btn').onclick = async () => {
+      const out = document.getElementById('out');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        out.textContent = 'Ошибка: в localStorage нет ключа token. Войди в приложение в этой вкладке.';
+        out.className = 'error';
+        return;
+      }
+      const taskId = document.getElementById('taskId').value.trim();
+      const apiBase = document.getElementById('apiBase').value.replace(/\/$/, '');
+      if (!taskId) {
+        out.textContent = 'Введи ID задачи.';
+        return;
+      }
+      const url = apiBase + '/tasks/debug-source?taskId=' + encodeURIComponent(taskId);
+      out.textContent = 'Запрос: GET ' + url + '\n\n...';
+      try {
+        const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+        const text = await res.text();
+        out.className = '';
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          out.textContent = 'Ответ не JSON.\n\nStatus: ' + res.status + ' ' + res.statusText + '\n\nТело ответа (первые 2000 символов):\n' + text.slice(0, 2000);
+          out.className = 'error';
+          return;
+        }
+        out.textContent = 'Status: ' + res.status + '\n\n' + JSON.stringify(data, null, 2);
+      } catch (err) {
+        out.textContent = 'Ошибка запроса: ' + err.message;
+        out.className = 'error';
+      }
+    };
+  </script>
+</body>
+</html>

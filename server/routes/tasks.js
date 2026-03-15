@@ -433,6 +433,90 @@ router.get('/raw-from-view', async (req, res) => {
 });
 
 /**
+ * GET /tasks/debug-source?taskId=123 — в каком источнике есть задача с данным ID.
+ * Помогает понять, почему новая задача не попадает в raw: не приходит из API, из представления, из «всех задач» или с Kanban.
+ */
+router.get('/debug-source', async (req, res) => {
+  try {
+    const userAsproId = await resolveUserAsproId(req);
+    const taskId = req.query.taskId ? String(req.query.taskId).trim() : null;
+    if (!taskId) {
+      return res.status(400).json({ message: 'Укажите taskId: GET /tasks/debug-source?taskId=123' });
+    }
+
+    const taskById = await getAsproTaskById(taskId);
+    const taskExistsInAspro = !!(taskById && (taskById.id != null || taskById.ID != null));
+
+    const [{ items: apiItems }, { tasks: allListTasks }, { tasks: viewTasks }, { tasks: kanbanTasks }] = await Promise.all([
+      getAsproTasksListForUser(userAsproId || ''),
+      getAsproTaskListAll(),
+      getAsproTaskListFromView(),
+      getAsproKanbanData()
+    ]);
+
+    const hasId = (list, id) => {
+      if (!Array.isArray(list)) return false;
+      const sid = String(id);
+      return list.some((t) => t && (String(t.id) === sid || String(t.ID) === sid));
+    };
+
+    const inApi = hasId(apiItems, taskId);
+    const inAll = hasId(allListTasks, taskId);
+    const inView = hasId(viewTasks, taskId);
+    const inKanban = hasId(kanbanTasks, taskId);
+
+    const inMerged = inApi || inAll || inView || inKanban;
+
+    let conclusion = '';
+    if (!taskExistsInAspro) {
+      conclusion = 'Задача не найдена в Aspro по GET /module/task/tasks/get/{id}. Проверьте ID или права доступа.';
+    } else if (!inMerged) {
+      conclusion = 'Задача есть в Aspro, но ни один из четырёх источников (API list, tasks_list/all, list2_list, Kanban) её не вернул. Возможные причины: тип задачи (filter[type]=!30), пагинация (лимит 50×10 страниц), представление list2_list отдаёт только часть задач, Kanban — только задачи с доски.';
+    } else {
+      const sources = [];
+      if (inApi) sources.push('API task/tasks/list (по responsible/assignee/...)');
+      if (inAll) sources.push('REST tasks_list/all');
+      if (inView) sources.push('REST list2_list (представление)');
+      if (inKanban) sources.push('Kanban get_data');
+      conclusion = 'Задача приходит из: ' + sources.join(', ');
+    }
+
+    return res.json({
+      debug: true,
+      taskId,
+      user_aspro_id: userAsproId,
+      task_exists_in_aspro: taskExistsInAspro,
+      task_details: taskById
+        ? {
+            id: taskById.id ?? taskById.ID,
+            name: taskById.name ?? taskById.title,
+            responsible_id: taskById.responsible_id ?? taskById.responsible_Id,
+            assignee_id: taskById.assignee_id ?? taskById.assigneeId,
+            owner_id: taskById.owner_id ?? taskById.owner_Id,
+            type: taskById.type ?? taskById.TYPE,
+            workflow_stage_id: taskById.workflow_stage_id ?? taskById.stage_id
+          }
+        : null,
+      in_api_list: inApi,
+      in_all_list: inAll,
+      in_view_list: inView,
+      in_kanban: inKanban,
+      in_merged_result: inMerged,
+      counts: {
+        api: Array.isArray(apiItems) ? apiItems.length : 0,
+        all: Array.isArray(allListTasks) ? allListTasks.length : 0,
+        view: Array.isArray(viewTasks) ? viewTasks.length : 0,
+        kanban: Array.isArray(kanbanTasks) ? kanbanTasks.length : 0
+      },
+      conclusion
+    });
+  } catch (err) {
+    console.error('Error in GET /tasks/debug-source:', err);
+    return res.status(500).json({ error: ASPRO_ERROR_MSG });
+  }
+});
+
+/**
  * GET /tasks/raw-from-all — отладка: что вернул REST «Все задачи» (tasks_list/all).
  */
 router.get('/raw-from-all', async (req, res) => {

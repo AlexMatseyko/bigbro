@@ -299,6 +299,18 @@ cd app && npm install && REACT_APP_API_URL=https://ваш-домен.ru npm run 
 pm2 restart team-tracker
 ```
 
+### Обновление только бэкенда (без пересборки фронта)
+
+Если меняли только код в `server/` (например, новый эндпоинт):
+
+```bash
+cd /var/www/bigbro
+git pull
+
+cd server && npm install --production && cd ..
+pm2 restart team-tracker
+```
+
 ---
 
 ## Полезные команды PM2
