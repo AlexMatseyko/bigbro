@@ -8,9 +8,24 @@ const publicUrl = process.env.PUBLIC_URL || '';
 pdfjsLib.GlobalWorkerOptions.workerSrc = `${publicUrl}/pdf.worker.min.mjs`;
 
 /**
- * Извлекает строки текста из PDF (каждая строка — потенциальный заголовок).
+ * Проверяет, что строка похожа на нумерованный заголовок раздела: "1. Болтовня интро", "2. Задача № 1" и т.д.
+ * Берём только строки вида "N. ..." (число, точка, пробел, название), не длинный body-текст.
+ */
+const NUMBERED_HEADING_REGEX = /^\d+\.\s+.+/;
+const MAX_HEADING_LENGTH = 200;
+
+function isNumberedHeading(line) {
+  const trimmed = line.trim();
+  if (!trimmed) return false;
+  if (trimmed.length > MAX_HEADING_LENGTH) return false;
+  return NUMBERED_HEADING_REGEX.test(trimmed);
+}
+
+/**
+ * Извлекает из PDF только нумерованные заголовки разделов (например "1. Болтовня интро", "2. Задача № 1").
+ * Обычный текст и абзацы не попадают в таблицу.
  * @param {File} file — файл PDF
- * @returns {Promise<string[]>} массив непустых строк в порядке сверху вниз
+ * @returns {Promise<string[]>} массив заголовков в порядке сверху вниз
  */
 export async function extractHeadingsFromPdf(file) {
   const arrayBuffer = await file.arrayBuffer();
@@ -23,7 +38,6 @@ export async function extractHeadingsFromPdf(file) {
     const textContent = await page.getTextContent();
     const items = textContent.items || [];
 
-    // Группируем по вертикали (y): transform[5] — вертикальная позиция (снизу вверх в PDF)
     const byY = new Map();
     for (const item of items) {
       const str = item.str;
@@ -34,7 +48,6 @@ export async function extractHeadingsFromPdf(file) {
       byY.get(key).push(str);
     }
 
-    // Сортируем по y по убыванию (сверху вниз на странице)
     const sortedKeys = [...byY.keys()].sort((a, b) => b - a);
     for (const key of sortedKeys) {
       const parts = byY.get(key);
@@ -43,5 +56,6 @@ export async function extractHeadingsFromPdf(file) {
     }
   }
 
-  return allLines;
+  // Оставляем только строки-заголовки вида "N. Название" (как на скрине: "1. Болтовня интро", "2. Задача № 1")
+  return allLines.filter(isNumberedHeading);
 }
