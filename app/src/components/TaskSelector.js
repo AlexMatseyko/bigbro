@@ -18,12 +18,16 @@ function TaskSelector({ task, onTaskChange }) {
     const token = window.localStorage.getItem('token');
     if (!token) return;
 
+    const params = new URLSearchParams(window.location.search);
+    const includeIds = params.get('includeTaskIds');
+    const url = includeIds ? `${API_BASE}/tasks?includeTaskIds=${encodeURIComponent(includeIds)}` : `${API_BASE}/tasks`;
+
     if (!silent) {
       setLoading(true);
       setError('');
     }
     try {
-      const res = await fetch(`${API_BASE}/tasks`, {
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`
         }
