@@ -329,8 +329,8 @@ async function getAsproTasksListForUser(asproUserId) {
 }
 
 /**
- * Данные доски Kanban — тот же источник, что и на странице /_module/task/view/board.
- * REST: GET /rest/component/VueKanban2/Kanban/get_data/
+ * Данные доски Kanban — только задачи, попавшие на доску /_module/task/view/board.
+ * У тебя этот источник даёт 0 задач, поэтому основные задачи берём из API list и отчёта report/users.
  */
 async function getAsproKanbanData() {
   const path = '/rest/component/VueKanban2/Kanban/get_data/';
@@ -347,8 +347,60 @@ async function getAsproKanbanData() {
   return { tasks: list, raw: data };
 }
 
-/** ID представления списка задач (из URL списка в Aspro: /_module/task/rest/task/list2_list/{viewId}). */
-const DEFAULT_TASK_LIST_VIEW_ID = 'efcee576-50f7-45b2-a8c6-aee61d3d96d4';
+/** Путь отчёта «Все задачи» по пользователям (вкладка в портале: report/users?tab=users). В .env: ASPRO_REPORT_USERS_PATH */
+const REPORT_USERS_PATH = process.env.ASPRO_REPORT_USERS_PATH || '/_module/task/report/users';
+/** Если страница report/users отдаёт HTML, укажи в .env REST-URL данных (посмотри в Network при открытии вкладки). */
+const REPORT_USERS_DATA_PATH = process.env.ASPRO_REPORT_USERS_DATA_PATH || '';
+
+/**
+ * Список задач из отчёта «Пользователи» — вкладка «все задачи» в портале.
+ * URL в браузере: https://alexligear1.aspro.cloud/_module/task/report/users?tab=users&open-in=rich-menu
+ * Сначала пробуем ASPRO_REPORT_USERS_DATA_PATH (если задан), иначе path report/users с api_key.
+ * @returns {Promise<{ tasks: Array, raw?: object, _debug?: object }>}
+ */
+async function getAsproTaskListFromReportUsers() {
+  const pathsToTry = [];
+  if (REPORT_USERS_DATA_PATH) {
+    pathsToTry.push(REPORT_USERS_DATA_PATH.startsWith('/') ? REPORT_USERS_DATA_PATH : `/${REPORT_USERS_DATA_PATH}`);
+  }
+  const basePath = REPORT_USERS_PATH.startsWith('/') ? REPORT_USERS_PATH : `/${REPORT_USERS_PATH}`;
+  pathsToTry.push(`${basePath}?tab=users&open-in=rich-menu`);
+
+  const apiKey = getApiKey();
+  const requestHeaders = { 'Content-Type': 'application/json' };
+  if (apiKey) requestHeaders['X-Api-Key'] = apiKey;
+
+  for (const pathOrQuery of pathsToTry) {
+    const url = pathOrQuery.startsWith('http') ? pathOrQuery : `${ASPRO_PORTAL_BASE}${pathOrQuery.startsWith('/') ? '' : '/'}${pathOrQuery}`;
+    const { url: fullUrl, headers } = await buildAsproRequestOptions(url, {});
+    const res = await fetch(fullUrl, { method: 'GET', headers: { ...headers, ...requestHeaders } });
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    const bodyText = await res.text().catch(() => '');
+    let data = {};
+    if (contentType.includes('application/json') && bodyText && !bodyText.trim().startsWith('<')) {
+      try {
+        data = JSON.parse(bodyText);
+      } catch (_) {}
+    }
+    let list =
+      data.items ?? data.tasks ?? data.list ?? data.rows ?? data.result
+      ?? data.response?.items ?? data.response?.tasks ?? data.response?.list ?? data.data;
+    if (!Array.isArray(list) && data.columns && Array.isArray(data.columns)) {
+      list = data.columns.flatMap((col) => col.tasks ?? col.items ?? col.data ?? []);
+    }
+    if (!Array.isArray(list) && data.data && typeof data.data === 'object' && Array.isArray(data.data.list)) {
+      list = data.data.list;
+    }
+    const tasks = Array.isArray(list) ? list : [];
+    if (tasks.length > 0) {
+      return { tasks, raw: data, _debug: { url: fullUrl.replace(/api_key=[^&]+/, 'api_key=***'), status: res.status, tasksCount: tasks.length } };
+    }
+  }
+  return { tasks: [], raw: {}, _debug: { tried: pathsToTry, hint: 'Если 0 задач — открой report/users в браузере, вкладка Network: найдите запрос с JSON-списком задач и укажите его путь в .env как ASPRO_REPORT_USERS_DATA_PATH' } };
+}
+
+/** ID представления списка задач (из URL в Network при открытии отчёта/списка в Aspro: list2_list/{viewId}). Переопределение: .env ASPRO_TASK_LIST_VIEW_ID */
+const DEFAULT_TASK_LIST_VIEW_ID = '59e64a81-92c5-464b-8f59-d6f539a05e72';
 
 /**
  * Список задач из представления «Список» (list2_list) — тот же источник, что в интерфейсе Aspro.
@@ -730,6 +782,7 @@ module.exports = {
   getAsproKanbanData,
   getAsproTaskListFromView,
   getAsproTaskListAll,
+  getAsproTaskListFromReportUsers,
   getAsproTaskPortalUrl,
   ASPRO_USER_LIST_URL,
   ASPRO_USERS_LIST_URL: ASPRO_USER_LIST_URL
