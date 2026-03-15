@@ -4,12 +4,49 @@ import {
   createTemplateTable,
   createTemplateTableFromHeadings
 } from '../utils/tableStorage';
+import { columnLetter } from '../utils/tableStorage';
 import { fetchTables, createTable, updateTable, deleteTable } from '../api/tableApi';
 import CreateTableModal from './CreateTableModal';
 import TemplateTasksModal from './TemplateTasksModal';
 import SheetView from './SheetView';
 import MethodistPicker from './MethodistPicker';
 import ThemePicker, { THEMES } from './ThemePicker';
+
+const COL_A = 0;
+const COL_F = 5;
+
+/**
+ * Подсчёт задач в таблице: всего (с непустым названием в колонке A) и свободных (без исполнителя в колонке F).
+ * @param {{ cells?: Record<string, string>, rowCount?: number }} table
+ * @returns {{ total: number, free: number }}
+ */
+function countTableTasks(table) {
+  const cells = table.cells || {};
+  const rowCount = Math.max(1, Number(table.rowCount) || 35);
+  const aLetter = columnLetter(COL_A);
+  const fLetter = columnLetter(COL_F);
+  let total = 0;
+  let free = 0;
+  for (let r = 1; r <= rowCount; r++) {
+    const name = (cells[`${aLetter}${r}`] || '').trim();
+    if (!name) continue;
+    total += 1;
+    const assignee = (cells[`${fLetter}${r}`] || '').trim();
+    if (!assignee) free += 1;
+  }
+  return { total, free };
+}
+
+/**
+ * Класс для цвета индикатора свободных задач: >75% — зелёный, >50% — оранжевый, иначе красный.
+ */
+function freeTasksColorClass(total, free) {
+  if (total === 0) return 'tables-list-free--neutral';
+  const ratio = free / total;
+  if (ratio > 0.75) return 'tables-list-free--green';
+  if (ratio > 0.5) return 'tables-list-free--orange';
+  return 'tables-list-free--red';
+}
 
 /** Страница «Таблицы»: список таблиц с API (все пользователи видят все таблицы). */
 function PageTables() {
@@ -240,6 +277,14 @@ function PageTables() {
                   <span className="tables-list-meta">
                     {t.createdAt ? new Date(t.createdAt).toLocaleDateString('ru-RU') : ''}
                   </span>
+                  {(() => {
+                    const { total, free } = countTableTasks(t);
+                    return (
+                      <span className={`tables-list-free ${freeTasksColorClass(total, free)}`}>
+                        Задач свободно: {free}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="tables-list-methodist">
                   <MethodistPicker

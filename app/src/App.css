@@ -325,6 +325,27 @@ body {
   color: var(--text-muted);
 }
 
+.tables-list-free {
+  font-size: calc(13px * var(--font-scale));
+  font-weight: 600;
+}
+
+.tables-list-free--green {
+  color: #0d7d3d;
+}
+
+.tables-list-free--orange {
+  color: #c55a00;
+}
+
+.tables-list-free--red {
+  color: #b91c1c;
+}
+
+.tables-list-free--neutral {
+  color: var(--text-muted);
+}
+
 .tables-list-methodist {
   width: 200px;
   min-width: 200px;
