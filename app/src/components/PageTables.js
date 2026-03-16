@@ -396,83 +396,87 @@ function PageTables() {
               style={{ '--table-theme-color': THEMES.find((x) => x.id === (t.theme ?? 1))?.color || THEMES[0].color }}
             >
               <div className="tables-list-main">
-                <div className="tables-list-name-block">
-                  <div className="tables-list-name-row">
-                    <button
-                      type="button"
-                      className="tables-list-open"
-                      onClick={() => handleOpenTable(t.id)}
-                    >
-                      Открыть
-                    </button>
-                    {editingNameId === t.id ? (
-                      <input
-                        type="text"
-                        className="tables-list-name-input"
-                        value={editingNameValue}
-                        onChange={(e) => setEditingNameValue(e.target.value)}
-                        onBlur={() => commitEditName(t.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') commitEditName(t.id);
-                          if (e.key === 'Escape') setEditingNameId(null);
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    ) : (
+                <div className="tables-list-main-left">
+                  <button
+                    type="button"
+                    className="tables-list-open"
+                    onClick={() => handleOpenTable(t.id)}
+                  >
+                    Открыть
+                  </button>
+                  <div className="tables-list-name-block">
+                    <div className="tables-list-name-row">
+                      {editingNameId === t.id ? (
+                        <input
+                          type="text"
+                          className="tables-list-name-input"
+                          value={editingNameValue}
+                          onChange={(e) => setEditingNameValue(e.target.value)}
+                          onBlur={() => commitEditName(t.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitEditName(t.id);
+                            if (e.key === 'Escape') setEditingNameId(null);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="tables-list-name-btn"
+                          onClick={(e) => startEditName(e, t)}
+                        >
+                          {t.name || 'Без названия'}
+                        </button>
+                      )}
                       <button
                         type="button"
-                        className="tables-list-name-btn"
-                        onClick={(e) => startEditName(e, t)}
+                        className="btn btn-secondary tables-list-files"
+                        onClick={() => setFilesModalOpen(true)}
                       >
-                        {t.name || 'Без названия'}
+                        Файлы
                       </button>
-                    )}
+                    </div>
+                    <span className="tables-list-meta">
+                      {t.createdAt ? new Date(t.createdAt).toLocaleDateString('ru-RU') : ''}
+                    </span>
                   </div>
-                  <span className="tables-list-meta">
-                    {t.createdAt ? new Date(t.createdAt).toLocaleDateString('ru-RU') : ''}
-                  </span>
                 </div>
-                <div className="tables-list-free-block">
-                  {(() => {
-                    const { total, free } = countTableTasks(t);
-                    return (
-                      <span className={`tables-list-free ${freeTasksColorClass(total, free)}`}>
-                        Задач свободно: {free}
-                      </span>
-                    );
-                  })()}
+                <div className="tables-list-main-right">
+                  <div className="tables-list-free-block">
+                    {(() => {
+                      const { total, free } = countTableTasks(t);
+                      return (
+                        <span className={`tables-list-free ${freeTasksColorClass(total, free)}`}>
+                          Задач свободно: {free}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div className="tables-list-methodist">
+                    <MethodistPicker
+                      value={t.methodist || null}
+                      onChange={(methodist) => handleUpdateTableMeta(t.id, { methodist })}
+                      onOpenChange={(open) => setOpenDropdownTableId(open ? t.id : null)}
+                      placeholder="Методист"
+                    />
+                  </div>
+                  <div className="tables-list-theme">
+                    <ThemePicker
+                      value={t.theme != null ? t.theme : null}
+                      onChange={(theme) => handleUpdateTableMeta(t.id, { theme })}
+                      onOpenChange={(open) => setOpenDropdownTableId(open ? t.id : null)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost tables-list-delete"
+                    onClick={(e) => handleDeleteTable(e, t.id)}
+                    aria-label="Удалить таблицу"
+                  >
+                    Удалить
+                  </button>
                 </div>
-                <div className="tables-list-methodist">
-                  <MethodistPicker
-                    value={t.methodist || null}
-                    onChange={(methodist) => handleUpdateTableMeta(t.id, { methodist })}
-                    onOpenChange={(open) => setOpenDropdownTableId(open ? t.id : null)}
-                    placeholder="Методист"
-                  />
-                </div>
-                <div className="tables-list-theme">
-                  <ThemePicker
-                    value={t.theme != null ? t.theme : null}
-                    onChange={(theme) => handleUpdateTableMeta(t.id, { theme })}
-                    onOpenChange={(open) => setOpenDropdownTableId(open ? t.id : null)}
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary tables-list-files"
-                  onClick={() => setFilesModalOpen(true)}
-                >
-                  Файлы
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-ghost tables-list-delete"
-                  onClick={(e) => handleDeleteTable(e, t.id)}
-                  aria-label="Удалить таблицу"
-                >
-                  Удалить
-                </button>
               </div>
             </li>
           ))}

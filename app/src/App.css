@@ -319,12 +319,27 @@ body {
 }
 
 .tables-list-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(140px, auto) 200px 140px auto;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   width: 100%;
   min-width: 0;
+}
+
+.tables-list-main-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.tables-list-main-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  justify-content: flex-end;
 }
 
 .tables-list-free-block {
@@ -350,6 +365,11 @@ body {
   gap: 10px;
   min-width: 0;
   max-width: 100%;
+}
+
+.tables-list-name-row .tables-list-name-btn,
+.tables-list-name-row .tables-list-name-input {
+  flex: 1 1 auto;
 }
 
 .tables-list-name-btn {
