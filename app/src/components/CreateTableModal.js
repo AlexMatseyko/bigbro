@@ -10,6 +10,7 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
   const [name, setName] = useState('');
   const [methodist, setMethodist] = useState(null);
   const [theme, setTheme] = useState(null);
+  const [showValidationError, setShowValidationError] = useState(false);
   const trimmedName = (name || '').trim();
   const isValid = !!trimmedName && theme != null;
 
@@ -18,6 +19,7 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
       setName('');
       setMethodist(null);
       setTheme(null);
+      setShowValidationError(false);
     }
   }, [open]);
 
@@ -62,10 +64,11 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
                 </div>
               </label>
             </div>
-            <div className="create-table-validation">
-              {!trimmedName && <span className="create-table-error">Введите название таблицы.</span>}
-              {trimmedName && theme == null && <span className="create-table-error">Выберите тему таблицы.</span>}
-            </div>
+            {showValidationError && !isValid && (
+              <div className="create-table-validation">
+                <span className="create-table-error">Не выбрано название и тема.</span>
+              </div>
+            )}
           </div>
           <div className="create-table-options">
             <button
@@ -73,15 +76,10 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
               className="create-table-option"
               onClick={() => {
                 if (!isValid) {
-                  if (!trimmedName && theme == null) {
-                    window.alert('Введите название таблицы и выберите тему.');
-                  } else if (!trimmedName) {
-                    window.alert('Введите название таблицы.');
-                  } else if (theme == null) {
-                    window.alert('Выберите тему таблицы.');
-                  }
+                  setShowValidationError(true);
                   return;
                 }
+                setShowValidationError(false);
                 onEmpty(meta);
               }}
             >
@@ -92,15 +90,10 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
               className="create-table-option"
               onClick={() => {
                 if (!isValid) {
-                  if (!trimmedName && theme == null) {
-                    window.alert('Введите название таблицы и выберите тему.');
-                  } else if (!trimmedName) {
-                    window.alert('Введите название таблицы.');
-                  } else if (theme == null) {
-                    window.alert('Выберите тему таблицы.');
-                  }
+                  setShowValidationError(true);
                   return;
                 }
+                setShowValidationError(false);
                 onTemplate(meta);
               }}
             >
