@@ -53,6 +53,11 @@ async function listFiles(folder = '') {
     })
   });
 
+  if (res.status === 404) {
+    // Рабочая папка или дерево не найдены — считаем, что содержимого нет
+    return [];
+  }
+
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Yandex Disk list error: ${res.status} ${text}`);
