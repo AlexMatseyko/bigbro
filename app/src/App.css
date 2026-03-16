@@ -455,6 +455,7 @@ body {
 /* Methodist picker */
 .methodist-picker {
   position: relative;
+  z-index: 1;
 }
 
 .methodist-picker-trigger {
@@ -515,7 +516,7 @@ body {
   min-width: 200px;
   max-height: 280px;
   overflow-y: auto;
-  z-index: 1200;
+  z-index: 4000;
 }
 
 .methodist-picker-option {
@@ -547,6 +548,7 @@ body {
 
 .theme-picker-dropdown {
   position: relative;
+  z-index: 1;
 }
 
 .theme-picker-trigger {
@@ -585,7 +587,7 @@ body {
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-soft);
   min-width: 160px;
-  z-index: 1200;
+  z-index: 4000;
 }
 
 .theme-picker-option {
