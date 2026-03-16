@@ -45,11 +45,16 @@ async function listFiles(folder = '') {
   }
   await ensureBaseFolder();
 
-  const url = `${WEBDAV_BASE_URL}${buildPath()}`;
+  // Нормализуем относительный путь подпапки (без ведущих/замыкающих слэшей)
+  const normalizedFolder = String(folder || '').replace(/^\/+|\/+$/g, '');
+
+  // Запрашиваем содержимое конкретной папки (корня или подпапки)
+  const url = `${WEBDAV_BASE_URL}${buildPath(normalizedFolder)}`;
   const res = await fetch(url, {
     method: 'PROPFIND',
     headers: getAuthHeaders({
-      Depth: 'infinity'
+      // Нужны только непосредственные дети текущей папки
+      Depth: '1'
     })
   });
 
@@ -70,9 +75,11 @@ async function listFiles(folder = '') {
   if (!responses) return [];
 
   const items = Array.isArray(responses) ? responses : [responses];
-  const baseHref = new URL(url).pathname;
+  // Базовый href текущей папки (корень или подпапка)
+  let baseHref = new URL(url).pathname;
+  // Яндекс может возвращать с/без завершающего слеша — нормализуем
+  baseHref = baseHref.replace(/\/+$/, '');
 
-  const normalizedFolder = String(folder || '').replace(/^\/+|\/+$/g, '');
   const all = items
     .map((item) => {
       const href = item['d:href'];
@@ -87,6 +94,7 @@ async function listFiles(folder = '') {
       if (relativePath.startsWith(baseHref)) {
         relativePath = relativePath.slice(baseHref.length);
       }
+      // убираем ведущие/хвостовые слэши
       relativePath = relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
 
       if (!relativePath) {
@@ -108,20 +116,9 @@ async function listFiles(folder = '') {
     })
     .filter(Boolean);
 
-  let result;
-  if (!normalizedFolder) {
-    // корневая папка: только элементы без вложенных сегментов
-    result = all.filter((it) => !String(it.path || '').includes('/'));
-  } else {
-    // подпапка: только непосредственные дети folder
-    const prefix = `${normalizedFolder}/`;
-    result = all.filter((it) => {
-      const p = String(it.path || '');
-      if (!p.startsWith(prefix)) return false;
-      const rest = p.slice(prefix.length);
-      return rest.length > 0 && !rest.includes('/');
-    });
-  }
+  // Мы запрашиваем содержимое уже конкретной папки с Depth: 1,
+  // поэтому оставляем только непосредственных детей (без вложенных сегментов)
+  const result = all.filter((it) => !String(it.path || '').includes('/'));
 
   return result.sort((a, b) => {
     // папки сверху, потом файлы по имени
