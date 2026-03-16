@@ -49,7 +49,7 @@ async function listFiles(folder = '') {
   const res = await fetch(url, {
     method: 'PROPFIND',
     headers: getAuthHeaders({
-      Depth: '1'
+      Depth: 'infinity'
     })
   });
 
