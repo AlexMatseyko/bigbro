@@ -315,7 +315,7 @@ body {
 }
 
 .tables-list-item--dropdown-open {
-  z-index: 100;
+  z-index: 5000;
 }
 
 .tables-list-main {
