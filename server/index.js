@@ -46,7 +46,8 @@ app.use('/tracker', authenticateToken, trackerRoutes);
 app.use('/tasks', authenticateToken, tasksRoutes);
 app.use('/tables', authenticateToken, tablesRoutes);
 app.use('/manager', managerRoutes);
-app.use('/files', authenticateToken, filesRoutes);
+// Маршруты работы с файлами (Яндекс.Диск) не требуют JWT, всё защищается на стороне Я.Диска.
+app.use('/files', filesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

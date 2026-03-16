@@ -3,17 +3,19 @@ const { parseStringPromise } = require('xml2js');
 
 const WEBDAV_BASE_URL = 'https://webdav.yandex.ru';
 
-const OAUTH_TOKEN = process.env.YANDEX_DISK_OAUTH_TOKEN;
+const BASIC_USER = process.env.YANDEX_DISK_LOGIN;
+const BASIC_PASSWORD = process.env.YANDEX_DISK_APP_PASSWORD;
 const BASE_FOLDER = process.env.YANDEX_DISK_BASE_FOLDER || '0 Скрипты по вебинарам';
 
-if (!OAUTH_TOKEN) {
-  console.warn('[YandexDisk] YANDEX_DISK_OAUTH_TOKEN is not set. Yandex Disk integration will not work.');
+if (!BASIC_USER || !BASIC_PASSWORD) {
+  console.warn('[YandexDisk] YANDEX_DISK_LOGIN or YANDEX_DISK_APP_PASSWORD is not set. Yandex Disk integration will not work.');
 }
 
 function getAuthHeaders(extra = {}) {
-  if (!OAUTH_TOKEN) return extra;
+  if (!BASIC_USER || !BASIC_PASSWORD) return extra;
+  const token = Buffer.from(`${BASIC_USER}:${BASIC_PASSWORD}`, 'utf8').toString('base64');
   return {
-    Authorization: `OAuth ${OAUTH_TOKEN}`,
+    Authorization: `Basic ${token}`,
     ...extra
   };
 }
@@ -25,7 +27,7 @@ function buildPath(relativePath = '') {
 }
 
 async function ensureBaseFolder() {
-  if (!OAUTH_TOKEN) return;
+  if (!BASIC_USER || !BASIC_PASSWORD) return;
   const url = `${WEBDAV_BASE_URL}${buildPath()}`;
   const res = await fetch(url, {
     method: 'MKCOL',
@@ -38,8 +40,8 @@ async function ensureBaseFolder() {
 }
 
 async function listFiles() {
-  if (!OAUTH_TOKEN) {
-    throw new Error('Yandex Disk token is not configured');
+  if (!BASIC_USER || !BASIC_PASSWORD) {
+    throw new Error('Yandex Disk credentials are not configured');
   }
   await ensureBaseFolder();
 
@@ -108,8 +110,8 @@ async function listFiles() {
 }
 
 async function deleteFile(relativePath) {
-  if (!OAUTH_TOKEN) {
-    throw new Error('Yandex Disk token is not configured');
+  if (!BASIC_USER || !BASIC_PASSWORD) {
+    throw new Error('Yandex Disk credentials are not configured');
   }
   const url = `${WEBDAV_BASE_URL}${buildPath(relativePath)}`;
   const res = await fetch(url, {
@@ -123,8 +125,8 @@ async function deleteFile(relativePath) {
 }
 
 async function uploadFile(relativePath, buffer, contentType) {
-  if (!OAUTH_TOKEN) {
-    throw new Error('Yandex Disk token is not configured');
+  if (!BASIC_USER || !BASIC_PASSWORD) {
+    throw new Error('Yandex Disk credentials are not configured');
   }
   await ensureBaseFolder();
 
@@ -143,8 +145,8 @@ async function uploadFile(relativePath, buffer, contentType) {
 }
 
 async function downloadFile(relativePath) {
-  if (!OAUTH_TOKEN) {
-    throw new Error('Yandex Disk token is not configured');
+  if (!BASIC_USER || !BASIC_PASSWORD) {
+    throw new Error('Yandex Disk credentials are not configured');
   }
   const url = `${WEBDAV_BASE_URL}${buildPath(relativePath)}`;
   const res = await fetch(url, {
