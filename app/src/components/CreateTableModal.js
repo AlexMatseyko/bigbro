@@ -71,16 +71,38 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
             <button
               type="button"
               className="create-table-option"
-              onClick={() => isValid && onEmpty(meta)}
-              disabled={!isValid}
+              onClick={() => {
+                if (!isValid) {
+                  if (!trimmedName && theme == null) {
+                    window.alert('Введите название таблицы и выберите тему.');
+                  } else if (!trimmedName) {
+                    window.alert('Введите название таблицы.');
+                  } else if (theme == null) {
+                    window.alert('Выберите тему таблицы.');
+                  }
+                  return;
+                }
+                onEmpty(meta);
+              }}
             >
               Создать пустую таблицу
             </button>
             <button
               type="button"
               className="create-table-option"
-              onClick={() => isValid && onTemplate(meta)}
-              disabled={!isValid}
+              onClick={() => {
+                if (!isValid) {
+                  if (!trimmedName && theme == null) {
+                    window.alert('Введите название таблицы и выберите тему.');
+                  } else if (!trimmedName) {
+                    window.alert('Введите название таблицы.');
+                  } else if (theme == null) {
+                    window.alert('Выберите тему таблицы.');
+                  }
+                  return;
+                }
+                onTemplate(meta);
+              }}
             >
               Создать шаблонную таблицу
             </button>
