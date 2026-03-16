@@ -17,7 +17,7 @@ const THEMES = [
 const PLACEHOLDER = 'Выбрать тему';
 
 /**
- * Выбор темы конспекта — выпадающий список с плейсхолдером «Выбрать тему».
+ * Выбор темы конспекта — всплывающее окно со списком тем.
  */
 function ThemePicker({ value, onChange, onOpenChange, className = '' }) {
   const [open, setOpen] = useState(false);
@@ -27,49 +27,81 @@ function ThemePicker({ value, onChange, onOpenChange, className = '' }) {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
 
-  useEffect(() => {
-    const onOutside = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    if (open) document.addEventListener('mousedown', onOutside);
-    return () => document.removeEventListener('mousedown', onOutside);
-  }, [open]);
-
   const selected = value != null && value !== '' ? THEMES.find((t) => t.id === Number(value)) : null;
   const displayLabel = selected ? selected.label : PLACEHOLDER;
 
   return (
-    <div className={`theme-picker theme-picker-dropdown ${className}`} ref={ref}>
-      <button
-        type="button"
-        className="theme-picker-trigger"
-        onClick={() => setOpen(!open)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        style={selected ? { '--theme-color': selected.color } : undefined}
-      >
-        <span className="theme-picker-trigger-label">{displayLabel}</span>
-      </button>
+    <>
+      <div className={`theme-picker theme-picker-dropdown ${className}`} ref={ref}>
+        <button
+          type="button"
+          className="theme-picker-trigger"
+          onClick={() => setOpen(true)}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          style={selected ? { '--theme-color': selected.color } : undefined}
+        >
+          <span className="theme-picker-trigger-label">{displayLabel}</span>
+        </button>
+      </div>
+
       {open && (
-        <ul className="theme-picker-dropdown-list" role="listbox">
-          {THEMES.map((t) => (
-            <li key={t.id} role="option">
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Выбор темы"
+          onClick={() => setOpen(false)}
+        >
+          <div className="modal-content template-tasks-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">Выбрать тему</h3>
               <button
                 type="button"
-                className={`theme-picker-option ${value === t.id ? 'active' : ''}`}
-                style={{ '--theme-color': t.color }}
-                onClick={() => {
-                  onChange(t.id);
-                  setOpen(false);
-                }}
+                className="modal-close"
+                onClick={() => setOpen(false)}
+                aria-label="Закрыть"
               >
-                {t.label}
+                &times;
               </button>
-            </li>
-          ))}
-        </ul>
+            </div>
+            <div className="modal-body">
+              <div className="task-modal-list-wrap">
+                <button
+                  type="button"
+                  className="task-modal-item task-modal-item-clear"
+                  onClick={() => {
+                    onChange(null);
+                    setOpen(false);
+                  }}
+                >
+                  Не выбрана
+                </button>
+                {THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className="task-modal-item"
+                    data-selected={selected && selected.id === t.id ? 'true' : 'false'}
+                    onClick={() => {
+                      onChange(t.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <span>{t.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
+                  Закрыть
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 
