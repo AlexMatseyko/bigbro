@@ -7,13 +7,15 @@ import ThemePicker from './ThemePicker';
  * При выборе типа вызывается onEmpty(meta) или onTemplate(meta), где meta = { name, methodist, theme }.
  */
 function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
-  const [name, setName] = useState('Новая таблица');
+  const [name, setName] = useState('');
   const [methodist, setMethodist] = useState(null);
   const [theme, setTheme] = useState(null);
+  const trimmedName = (name || '').trim();
+  const isValid = !!trimmedName && theme != null;
 
   useEffect(() => {
     if (open) {
-      setName('Новая таблица');
+      setName('');
       setMethodist(null);
       setTheme(null);
     }
@@ -21,7 +23,7 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
 
   if (!open) return null;
 
-  const meta = { name: (name || '').trim() || 'Новая таблица', methodist, theme };
+  const meta = { name: trimmedName, methodist, theme };
 
   return (
     <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-label="Создать таблицу">
@@ -39,7 +41,7 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
                 className="template-tasks-input create-table-name-input"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Новая таблица"
+                placeholder="Введите название таблицы"
               />
             </label>
             <div className="create-table-pickers">
@@ -60,12 +62,26 @@ function CreateTableModal({ open, onClose, onEmpty, onTemplate }) {
                 </div>
               </label>
             </div>
+            <div className="create-table-validation">
+              {!trimmedName && <span className="create-table-error">Введите название таблицы.</span>}
+              {trimmedName && theme == null && <span className="create-table-error">Выберите тему таблицы.</span>}
+            </div>
           </div>
           <div className="create-table-options">
-            <button type="button" className="create-table-option" onClick={() => onEmpty(meta)}>
+            <button
+              type="button"
+              className="create-table-option"
+              onClick={() => isValid && onEmpty(meta)}
+              disabled={!isValid}
+            >
               Создать пустую таблицу
             </button>
-            <button type="button" className="create-table-option" onClick={() => onTemplate(meta)}>
+            <button
+              type="button"
+              className="create-table-option"
+              onClick={() => isValid && onTemplate(meta)}
+              disabled={!isValid}
+            >
               Создать шаблонную таблицу
             </button>
           </div>
