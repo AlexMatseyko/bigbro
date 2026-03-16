@@ -54,6 +54,11 @@ async function listFiles(folder = '') {
     })
   });
 
+  if (res.status === 404) {
+    // Подпапка не найдена — считаем, что в ней просто нет элементов
+    return [];
+  }
+
   if (!res.ok) {
     const text = await res.text().catch(() => '');
     throw new Error(`Yandex Disk list error: ${res.status} ${text}`);
