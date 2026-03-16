@@ -46,12 +46,10 @@ async function listFiles(folder = '') {
   await ensureBaseFolder();
 
   const url = `${WEBDAV_BASE_URL}${buildPath(folder)}`;
-  const rootUrl = `${WEBDAV_BASE_URL}${buildPath()}`;
   const res = await fetch(url, {
     method: 'PROPFIND',
     headers: getAuthHeaders({
-      // Полное чтение: берём все вложенные подпапки и файлы
-      Depth: 'infinity'
+      Depth: '1'
     })
   });
 
@@ -72,7 +70,7 @@ async function listFiles(folder = '') {
   if (!responses) return [];
 
   const items = Array.isArray(responses) ? responses : [responses];
-  const baseHref = new URL(rootUrl).pathname;
+  const baseHref = new URL(url).pathname;
 
   return items
     .map((item) => {
