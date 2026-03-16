@@ -1,7 +1,10 @@
 import { API_BASE } from '../config';
 
-export async function fetchFiles(token) {
-  const res = await fetch(`${API_BASE}/files`, {
+export async function fetchFiles(token, folder = '') {
+  const url = folder
+    ? `${API_BASE}/files?folder=${encodeURIComponent(folder)}`
+    : `${API_BASE}/files`;
+  const res = await fetch(url, {
     headers: {
       Authorization: `Bearer ${token}`
     }

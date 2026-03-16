@@ -11,10 +11,11 @@ const {
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// GET /files — список файлов в рабочей папке Я.Диска
+// GET /files — список файлов/папок в рабочей папке Я.Диска
 router.get('/', async (req, res) => {
   try {
-    const items = await listFiles();
+    const folder = req.query.folder || '';
+    const items = await listFiles(folder);
     res.json(items);
   } catch (err) {
     console.error('Error in GET /files:', err);

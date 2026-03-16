@@ -22,6 +22,7 @@ function FilesModal({ open, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [currentFolder, setCurrentFolder] = useState('');
 
   useEffect(() => {
     if (!open) return;
@@ -29,14 +30,14 @@ function FilesModal({ open, onClose }) {
     if (!token) return;
     setLoading(true);
     setError('');
-    fetchFiles(token)
+    fetchFiles(token, currentFolder)
       .then(setItems)
       .catch((err) => {
         console.error('Files list error', err);
         setError(err.message || 'Не удалось загрузить список файлов.');
       })
       .finally(() => setLoading(false));
-  }, [open]);
+  }, [open, currentFolder]);
 
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -71,9 +72,20 @@ function FilesModal({ open, onClose }) {
     }
   };
 
-  const handleOpen = (path) => {
-    const url = buildDownloadUrl(path);
+  const handleOpen = (item) => {
+    if (item.isDir) {
+      setCurrentFolder(item.path);
+      return;
+    }
+    const url = buildDownloadUrl(item.path);
     window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleGoUp = () => {
+    if (!currentFolder) return;
+    const parts = currentFolder.split('/').filter(Boolean);
+    parts.pop();
+    setCurrentFolder(parts.join('/'));
   };
 
   if (!open) return null;
@@ -100,6 +112,18 @@ function FilesModal({ open, onClose }) {
             </label>
             {uploading && <span className="files-modal-status">Загрузка…</span>}
           </div>
+          {currentFolder && (
+            <div className="files-modal-breadcrumbs">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={handleGoUp}
+              >
+                ← Вверх
+              </button>
+              <span className="files-modal-path">{currentFolder}</span>
+            </div>
+          )}
           {loading && <p className="files-modal-status">Загрузка списка файлов…</p>}
           {error && <p className="files-modal-error">{error}</p>}
           {!loading && !error && (
@@ -119,14 +143,23 @@ function FilesModal({ open, onClose }) {
                   <tbody>
                     {items.map((it) => (
                       <tr key={it.path}>
-                        <td>{it.name}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn-link files-modal-name-btn"
+                            onClick={() => handleOpen(it)}
+                          >
+                            {it.isDir ? '📁 ' : ''}
+                            {it.name}
+                          </button>
+                        </td>
                         <td>{formatSize(it.size)}</td>
                         <td>{formatDate(it.lastModified)}</td>
                         <td className="files-modal-actions">
                           <button
                             type="button"
                             className="btn btn-ghost"
-                            onClick={() => handleOpen(it.path)}
+                            onClick={() => handleOpen(it)}
                           >
                             Открыть
                           </button>

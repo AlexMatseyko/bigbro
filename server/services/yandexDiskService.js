@@ -39,13 +39,14 @@ async function ensureBaseFolder() {
   }
 }
 
-async function listFiles() {
+async function listFiles(folder = '') {
   if (!BASIC_USER || !BASIC_PASSWORD) {
     throw new Error('Yandex Disk credentials are not configured');
   }
   await ensureBaseFolder();
 
-  const url = `${WEBDAV_BASE_URL}${buildPath()}`;
+  const url = `${WEBDAV_BASE_URL}${buildPath(folder)}`;
+  const rootUrl = `${WEBDAV_BASE_URL}${buildPath()}`;
   const res = await fetch(url, {
     method: 'PROPFIND',
     headers: getAuthHeaders({
@@ -65,7 +66,7 @@ async function listFiles() {
   if (!responses) return [];
 
   const items = Array.isArray(responses) ? responses : [responses];
-  const baseHref = new URL(url).pathname;
+  const baseHref = new URL(rootUrl).pathname;
 
   return items
     .map((item) => {
