@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 
 const THEMES = [
   { id: 1, label: 'Планиметрия', color: '#38bdf8' },
@@ -45,7 +46,7 @@ function ThemePicker({ value, onChange, onOpenChange, className = '' }) {
         </button>
       </div>
 
-      {open && (
+      {open && ReactDOM.createPortal(
         <div
           className="modal-overlay"
           role="dialog"
@@ -99,7 +100,8 @@ function ThemePicker({ value, onChange, onOpenChange, className = '' }) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

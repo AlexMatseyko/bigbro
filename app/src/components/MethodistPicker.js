@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { API_BASE } from '../config';
 
 /**
@@ -51,7 +52,7 @@ function MethodistPicker({ value, onChange, onOpenChange, placeholder = 'Выб�
         </button>
       </div>
 
-      {open && (
+      {open && ReactDOM.createPortal(
         <div
           className="modal-overlay"
           role="dialog"
@@ -123,7 +124,8 @@ function MethodistPicker({ value, onChange, onOpenChange, placeholder = 'Выб�
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
