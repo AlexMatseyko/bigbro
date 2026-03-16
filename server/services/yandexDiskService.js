@@ -45,18 +45,13 @@ async function listFiles(folder = '') {
   }
   await ensureBaseFolder();
 
-  const url = `${WEBDAV_BASE_URL}${buildPath(folder)}`;
+  const url = `${WEBDAV_BASE_URL}${buildPath()}`;
   const res = await fetch(url, {
     method: 'PROPFIND',
     headers: getAuthHeaders({
       Depth: '1'
     })
   });
-
-  if (res.status === 404) {
-    // Подпапка не найдена — считаем, что в ней просто нет элементов
-    return [];
-  }
 
   if (!res.ok) {
     const text = await res.text().catch(() => '');
@@ -72,7 +67,8 @@ async function listFiles(folder = '') {
   const items = Array.isArray(responses) ? responses : [responses];
   const baseHref = new URL(url).pathname;
 
-  return items
+  const normalizedFolder = String(folder || '').replace(/^\/+|\/+$/g, '');
+  const all = items
     .map((item) => {
       const href = item['d:href'];
       const propstat = item['d:propstat'];
@@ -105,13 +101,29 @@ async function listFiles(folder = '') {
         lastModified
       };
     })
-    .filter(Boolean)
-    .sort((a, b) => {
-      // папки сверху, потом файлы по имени
-      if (a.isDir && !b.isDir) return -1;
-      if (!a.isDir && b.isDir) return 1;
-      return a.name.localeCompare(b.name, 'ru');
+    .filter(Boolean);
+
+  let result;
+  if (!normalizedFolder) {
+    // корневая папка: только элементы без вложенных сегментов
+    result = all.filter((it) => !String(it.path || '').includes('/'));
+  } else {
+    // подпапка: только непосредственные дети folder
+    const prefix = `${normalizedFolder}/`;
+    result = all.filter((it) => {
+      const p = String(it.path || '');
+      if (!p.startsWith(prefix)) return false;
+      const rest = p.slice(prefix.length);
+      return rest.length > 0 && !rest.includes('/');
     });
+  }
+
+  return result.sort((a, b) => {
+    // папки сверху, потом файлы по имени
+    if (a.isDir && !b.isDir) return -1;
+    if (!a.isDir && b.isDir) return 1;
+    return a.name.localeCompare(b.name, 'ru');
+  });
 }
 
 async function deleteFile(relativePath) {
