@@ -12,6 +12,7 @@ import TemplateTasksModal from './TemplateTasksModal';
 import SheetView from './SheetView';
 import MethodistPicker from './MethodistPicker';
 import ThemePicker, { THEMES } from './ThemePicker';
+import FilesModal from './FilesModal';
 
 const COL_A = 0;
 const COL_F = 5;
@@ -69,6 +70,7 @@ function PageTables() {
   const [filterDateFrom, setFilterDateFrom] = useState('');
   const [filterDateTo, setFilterDateTo] = useState('');
   const [filterFreeMin, setFilterFreeMin] = useState('');
+  const [filesModalOpen, setFilesModalOpen] = useState(false);
 
   const loadTables = useCallback(async () => {
     setLoading(true);
@@ -458,6 +460,13 @@ function PageTables() {
                 </div>
                 <button
                   type="button"
+                  className="btn btn-secondary tables-list-files"
+                  onClick={() => setFilesModalOpen(true)}
+                >
+                  Файлы
+                </button>
+                <button
+                  type="button"
                   className="btn btn-ghost tables-list-delete"
                   onClick={(e) => handleDeleteTable(e, t.id)}
                   aria-label="Удалить таблицу"
@@ -482,6 +491,11 @@ function PageTables() {
         onClose={() => setTemplateModalOpen(false)}
         onConfirmCount={handleCreateTemplate}
         onConfirmHeadings={handleCreateTemplateFromHeadings}
+      />
+
+      <FilesModal
+        open={filesModalOpen}
+        onClose={() => setFilesModalOpen(false)}
       />
     </section>
   );

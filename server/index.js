@@ -10,6 +10,7 @@ const trackerRoutes = require('./routes/tracker');
 const tasksRoutes = require('./routes/tasks');
 const tablesRoutes = require('./routes/tables');
 const managerRoutes = require('./routes/manager');
+const filesRoutes = require('./routes/files');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -45,6 +46,7 @@ app.use('/tracker', authenticateToken, trackerRoutes);
 app.use('/tasks', authenticateToken, tasksRoutes);
 app.use('/tables', authenticateToken, tablesRoutes);
 app.use('/manager', managerRoutes);
+app.use('/files', authenticateToken, filesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

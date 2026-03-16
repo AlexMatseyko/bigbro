@@ -426,6 +426,11 @@ body {
   max-width: 140px;
 }
 
+.tables-list-files {
+  font-size: calc(13px * var(--font-scale));
+  margin-right: 8px;
+}
+
 .tables-list-open {
   justify-self: start;
   padding: 8px 16px;
@@ -688,6 +693,55 @@ body {
 
 .modal-body {
   padding: 20px;
+}
+
+.files-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.files-modal-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.files-modal-status {
+  font-size: calc(13px * var(--font-scale));
+  color: var(--text-muted);
+}
+
+.files-modal-error {
+  font-size: calc(13px * var(--font-scale));
+  color: var(--danger);
+}
+
+.files-modal-list-wrap {
+  max-height: 420px;
+  overflow: auto;
+}
+
+.files-modal-empty {
+  font-size: calc(14px * var(--font-scale));
+  color: var(--text-muted);
+}
+
+.files-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: calc(14px * var(--font-scale));
+}
+
+.files-modal-table th,
+.files-modal-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+}
+
+.files-modal-actions {
+  white-space: nowrap;
 }
 
 .modal-actions {
