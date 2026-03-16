@@ -85,7 +85,7 @@ async function listFiles(folder = '') {
       relativePath = relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
 
       if (!relativePath) {
-        // это сама папка
+        // это сама корневая папка
         return null;
       }
 
