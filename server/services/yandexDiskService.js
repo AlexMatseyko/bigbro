@@ -96,21 +96,28 @@ async function listFiles(folder = '') {
       if (relativePath.startsWith(baseHref)) {
         relativePath = relativePath.slice(baseHref.length);
       }
-      // убираем ведущие/хвостовые слэши
-      relativePath = relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
+      // относительный путь внутри ТЕКУЩЕЙ папки (без ведущих/хвостовых слэшей)
+      let relativeInCurrent = relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
 
-      if (!relativePath) {
+      if (!relativeInCurrent) {
         // это сама корневая папка
         return null;
       }
 
-      const displayName = prop['d:displayname'] || relativePath;
+      // Полный путь относительно базовой папки (root/BaseFolder)
+      const fullPath = normalizedFolder
+        ? `${normalizedFolder}/${relativeInCurrent}`
+        : relativeInCurrent;
+
+      const displayName = prop['d:displayname'] || relativeInCurrent;
       const contentLength = Number(prop['d:getcontentlength'] || 0) || 0;
       const lastModified = prop['d:getlastmodified'] || null;
 
       return {
         name: displayName,
-        path: relativePath,
+        // Всегда возвращаем полный путь от базовой папки,
+        // чтобы фронт мог корректно проваливаться в подпапки любой глубины
+        path: fullPath,
         isDir,
         size: isDir ? null : contentLength,
         lastModified
@@ -119,8 +126,21 @@ async function listFiles(folder = '') {
     .filter(Boolean);
 
   // Мы запрашиваем содержимое уже конкретной папки с Depth: 1,
-  // поэтому оставляем только непосредственных детей (без вложенных сегментов)
-  const result = all.filter((it) => !String(it.path || '').includes('/'));
+  // поэтому оставляем только непосредственных детей ТЕКУЩЕЙ папки:
+  // путь должен начинаться с normalizedFolder (если он есть) и не содержать лишних уровней.
+  let result;
+  if (!normalizedFolder) {
+    // корень базовой папки: дети — те, у кого нет "/"
+    result = all.filter((it) => !String(it.path || '').includes('/'));
+  } else {
+    const prefix = `${normalizedFolder}/`;
+    result = all.filter((it) => {
+      const p = String(it.path || '');
+      if (!p.startsWith(prefix)) return false;
+      const rest = p.slice(prefix.length);
+      return rest.length > 0 && !rest.includes('/');
+    });
+  }
 
   return result.sort((a, b) => {
     // папки сверху, потом файлы по имени
