@@ -77,6 +77,8 @@ async function listFiles(folder = '') {
   const items = Array.isArray(responses) ? responses : [responses];
   // Базовый href текущей папки (корень или подпапка)
   let baseHref = new URL(url).pathname;
+  // Декодируем, чтобы формат совпадал с decodeURI(href)
+  baseHref = decodeURI(baseHref);
   // Яндекс может возвращать с/без завершающего слеша — нормализуем
   baseHref = baseHref.replace(/\/+$/, '');
 
