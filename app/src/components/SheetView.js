@@ -8,13 +8,32 @@ import { API_BASE } from '../config';
 
 const COLS = 26;
 const COL_A = 0;
-const COL_F = 5;
-const COLUMN_LABELS = { [COL_A]: 'Название', [COL_F]: 'Исполнитель' };
+const COL_EXECUTOR = 9;
+const TASK_START_ROW_INDEX = 1;
+const COLUMN_LABELS = {
+  0: 'Название',
+  1: 'Кто делает',
+  2: 'Состояние',
+  3: 'Комментарий',
+  5: 'Озвучка',
+  9: 'Исполнитель',
+  10: 'Состояние',
+  11: 'Ссылка',
+  12: 'Комментарий'
+};
+const COLUMN_GROUPS = [
+  { start: 0, end: 3, label: 'Маним' },
+  { start: 4, end: 4, label: '' },
+  { start: 5, end: 5, label: 'Звук' },
+  { start: 6, end: 8, label: '' },
+  { start: 9, end: 12, label: 'Монтаж' },
+  { start: 13, end: 25, label: '' }
+];
 function getColumnHeader(colIndex) {
   return COLUMN_LABELS[colIndex] != null ? COLUMN_LABELS[colIndex] : columnLetter(colIndex);
 }
 
-/** Ячейка-выпадающий список исполнителей (Фамилия Имя) в столбце F */
+/** Ячейка-выпадающий список исполнителей (Фамилия Имя) в столбце J */
 function ExecutorCell({ value, users, onChange }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -71,10 +90,23 @@ function ExecutorCell({ value, users, onChange }) {
 }
 const CELL_WIDTH = 100;
 const CELL_HEIGHT = 28;
-const HEADER_HEIGHT = 32;
+const HEADER_GROUP_HEIGHT = 22;
+const HEADER_SUB_HEIGHT = 32;
+const HEADER_HEIGHT = HEADER_GROUP_HEIGHT + HEADER_SUB_HEIGHT;
 const ROW_HEADER_WIDTH = 44;
 const MIN_COL_WIDTH = 40;
 const MAX_COL_WIDTH = 400;
+const DEFAULT_COL_WIDTHS = {
+  0: 260, // Название
+  1: 180, // Кто делает
+  2: 140, // Состояние (Маним)
+  3: 260, // Комментарий (Маним)
+  5: 180, // Озвучка
+  9: 180, // Исполнитель (Монтаж)
+  10: 140, // Состояние (Монтаж)
+  11: 260, // Ссылка
+  12: 260 // Комментарий (Монтаж)
+};
 
 /**
  * Редактор таблицы в стиле Google Sheets. Строк: table.rowCount (по умолчанию 35), кнопка +20 строк.
@@ -102,7 +134,7 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
   }, [table.id]);
 
   const getColWidth = useCallback((col) => {
-    const w = colWidths[col];
+    const w = colWidths[col] != null ? colWidths[col] : DEFAULT_COL_WIDTHS[col];
     if (w == null) return CELL_WIDTH;
     return Math.max(MIN_COL_WIDTH, Math.min(MAX_COL_WIDTH, Number(w)));
   }, [colWidths]);
@@ -272,7 +304,8 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
   const handleTakeTask = useCallback(
     async (rowIndex) => {
       if (!table.id || !onSave || takeTaskLoading) return;
-      const taskName = getCellValue(COL_A, rowIndex) || `Задача ${rowIndex + 1}`;
+      const taskOrdinal = rowIndex - TASK_START_ROW_INDEX + 1;
+      const taskName = getCellValue(COL_A, rowIndex) || `Задача ${taskOrdinal}`;
       setTakeTaskLoading(true);
       try {
         const data = await takeTableTask(table.id, rowIndex);
@@ -304,6 +337,11 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
   };
 
   const themeColor = theme != null ? (THEMES.find((t) => t.id === theme)?.color || THEMES[0].color) : THEMES[0].color;
+  const getGroupWidth = useCallback((start, end) => {
+    let width = 0;
+    for (let i = start; i <= end; i++) width += getColWidth(i);
+    return width;
+  }, [getColWidth]);
 
   return (
     <div className="sheet-view" data-theme={theme} style={{ '--sheet-theme-color': themeColor }}>
@@ -351,19 +389,32 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
           <div className="sheet-header-row" style={{ height: HEADER_HEIGHT }}>
             <div className="sheet-corner" style={{ width: ROW_HEADER_WIDTH, height: HEADER_HEIGHT }} />
             <div className="sheet-col-headers" style={{ height: HEADER_HEIGHT }}>
-              {Array.from({ length: COLS }, (_, i) => (
-                <div key={i} className="sheet-col-header-wrap" style={{ width: getColWidth(i), minWidth: MIN_COL_WIDTH }}>
-                  <div className="sheet-col-header" style={{ height: HEADER_HEIGHT }}>
-                    {getColumnHeader(i)}
+              <div className="sheet-col-headers-group" style={{ height: HEADER_GROUP_HEIGHT }}>
+                {COLUMN_GROUPS.map((group) => (
+                  <div
+                    key={`${group.start}-${group.end}`}
+                    className="sheet-col-header sheet-col-header--group"
+                    style={{ width: getGroupWidth(group.start, group.end), minWidth: MIN_COL_WIDTH, height: HEADER_GROUP_HEIGHT }}
+                  >
+                    {group.label}
                   </div>
-                  <span
-                    className="sheet-col-resize"
-                    onMouseDown={(e) => startResize(e, i)}
-                    role="separator"
-                    aria-label="Изменить ширину"
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="sheet-col-headers-sub" style={{ height: HEADER_SUB_HEIGHT }}>
+                {Array.from({ length: COLS }, (_, i) => (
+                  <div key={i} className="sheet-col-header-wrap" style={{ width: getColWidth(i), minWidth: MIN_COL_WIDTH }}>
+                    <div className="sheet-col-header" style={{ height: HEADER_SUB_HEIGHT }}>
+                      {getColumnHeader(i)}
+                    </div>
+                    <span
+                      className="sheet-col-resize"
+                      onMouseDown={(e) => startResize(e, i)}
+                      role="separator"
+                      aria-label="Изменить ширину"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           {Array.from({ length: rowCount }, (_, rowIndex) => (
@@ -378,8 +429,8 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
                   const value = getCellValue(colIndex, rowIndex);
                   const w = getColWidth(colIndex);
                   const isColA = colIndex === COL_A;
-                  const isColF = colIndex === COL_F;
-                  const showTakeTask = isColA && hoveredTaskRow === rowIndex && (value || '').trim().length > 0;
+                  const isExecutorCol = colIndex === COL_EXECUTOR;
+                  const showTakeTask = isColA && rowIndex >= TASK_START_ROW_INDEX && hoveredTaskRow === rowIndex && (value || '').trim().length > 0;
 
                   const cellContent = isEditing ? (
                     <input
@@ -392,11 +443,11 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
                       onKeyDown={handleInputKeyDown}
                       onClick={(e) => e.stopPropagation()}
                     />
-                  ) : isColF ? (
+                  ) : isExecutorCol ? (
                     <ExecutorCell
                       value={value}
                       users={users}
-                      onChange={(v) => setCellValue(COL_F, rowIndex, v)}
+                      onChange={(v) => setCellValue(COL_EXECUTOR, rowIndex, v)}
                     />
                   ) : (
                     <>
@@ -424,12 +475,12 @@ function SheetView({ table, onSave, onBack, initialFocusTitle }) {
                       style={{ width: w, minWidth: MIN_COL_WIDTH, height: CELL_HEIGHT }}
                       onClick={(e) => {
                         if (e.target.closest('.sheet-cell-take-task')) return;
-                        if (!isEditing && isColF) return;
+                        if (!isEditing && isExecutorCol) return;
                         if (!isEditing) startEdit(colIndex, rowIndex);
                       }}
                       onMouseEnter={() => isColA && setHoveredTaskRow(rowIndex)}
                       onMouseLeave={() => isColA && setHoveredTaskRow(null)}
-                      onDoubleClick={() => !isColF && startEdit(colIndex, rowIndex)}
+                      onDoubleClick={() => !isExecutorCol && startEdit(colIndex, rowIndex)}
                       onKeyDown={(e) => handleCellKeyDown(e, colIndex, rowIndex)}
                       tabIndex={0}
                     >

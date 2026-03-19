@@ -162,7 +162,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 /**
- * POST /tables/:id/take-task — взять задачу: создать задачу в Aspro (исполнитель = текущий пользователь, постановщик = методист таблицы, проект = название таблицы), записать исполнителя в ячейку F строки.
+ * POST /tables/:id/take-task — взять задачу: создать задачу в Aspro (исполнитель = текущий пользователь, постановщик = методист таблицы, проект = название таблицы), записать исполнителя в ячейку J строки.
  * Body: { rowIndex: number } (индекс строки 0-based).
  */
 router.post('/:id/take-task', async (req, res) => {
@@ -184,7 +184,8 @@ router.post('/:id/take-task', async (req, res) => {
     if (!tableResult.rows.length) return res.status(404).json({ message: 'Таблица не найдена.' });
     const tableRow = tableResult.rows[0];
     const cells = tableRow.cells || {};
-    const taskName = cells[`A${rowNum + 1}`] || `Задача ${rowNum + 1}`;
+    const taskOrdinal = Math.max(1, rowNum);
+    const taskName = cells[`A${rowNum + 1}`] || `Задача ${taskOrdinal}`;
 
     const { asproId: executorAsproId, fullName: executorFullName } = await getCurrentUserAsproAndName(userId);
     if (!executorAsproId) {
@@ -214,7 +215,7 @@ router.post('/:id/take-task', async (req, res) => {
       });
     }
 
-    cells[`F${rowNum + 1}`] = executorFullName;
+    cells[`J${rowNum + 1}`] = executorFullName;
     await db.query(
       'UPDATE tables SET cells = $2 WHERE id = $1',
       [tableId, JSON.stringify(cells)]

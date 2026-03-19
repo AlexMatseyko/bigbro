@@ -15,10 +15,11 @@ import ThemePicker, { THEMES } from './ThemePicker';
 import FilesModal from './FilesModal';
 
 const COL_A = 0;
-const COL_F = 5;
+const COL_EXECUTOR = 9;
+const TASK_START_ROW = 2;
 
 /**
- * Подсчёт задач в таблице: всего (с непустым названием в колонке A) и свободных (без исполнителя в колонке F).
+ * Подсчёт задач в таблице: всего (с непустым названием в колонке A) и свободных (без исполнителя в колонке J).
  * @param {{ cells?: Record<string, string>, rowCount?: number }} table
  * @returns {{ total: number, free: number }}
  */
@@ -26,14 +27,14 @@ function countTableTasks(table) {
   const cells = table.cells || {};
   const rowCount = Math.max(1, Number(table.rowCount) || 35);
   const aLetter = columnLetter(COL_A);
-  const fLetter = columnLetter(COL_F);
+  const executorLetter = columnLetter(COL_EXECUTOR);
   let total = 0;
   let free = 0;
-  for (let r = 1; r <= rowCount; r++) {
+  for (let r = TASK_START_ROW; r <= rowCount; r++) {
     const name = (cells[`${aLetter}${r}`] || '').trim();
     if (!name) continue;
     total += 1;
-    const assignee = (cells[`${fLetter}${r}`] || '').trim();
+    const assignee = (cells[`${executorLetter}${r}`] || '').trim();
     if (!assignee) free += 1;
   }
   return { total, free };
